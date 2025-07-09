@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国内食品小売業 品質管理(2022-2024年)【内部統制委員会資料】</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #E9ECEF;
+        }
+        .page-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            min-height: calc(100vh - 100px);
+        }
+        .page {
+            background: white;
+            width: 297mm;
+            height: 209mm; /* Slightly less to avoid scrollbars */
+            padding: 15mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .page.active {
+            display: flex;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 100%;
+            width: 100%;
+        }
+        .kpi-card {
+            border-left: 5px solid #0A9396;
+        }
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #94D2BD;
+        }
+        .flow-box {
+            border: 2px solid #94D2BD;
+        }
+        .nav-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #005F73;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .nav-button {
+            background-color: #0A9396;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .nav-button:hover {
+            background-color: #94D2BD;
+        }
+        .page-number {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin: 0 2rem;
+        }
+
+        @media print {
+            body {
+                background-color: white;
+            }
+            .page-container {
+                padding: 0;
+            }
+            .page {
+                display: flex !important; /* Show all pages for printing */
+                width: 100%;
+                height: 100vh;
+                box-shadow: none;
+                margin: 0;
+                padding: 10mm;
+                page-break-after: always;
+            }
+            .page:last-child {
+                page-break-after: avoid;
+            }
+            .nav-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        
+        <div class="page active" id="page-1">
+            <header class="text-center">
+                <h1 class="text-6xl font-bold text-[#005F73]">国内食品小売業 品質管理<br>内部統制委員会資料</h1>
+                <p class="mt-8 text-3xl text-gray-700">2022-2024年 動向分析</p>
+                <div class="mt-20 border-t-4 border-[#005F73] w-1/4 mx-auto"></div>
+                <p class="mt-8 text-2xl text-gray-600">エフコープ生活協同組合 経営企画部</p>
+            </header>
+        </div>
+
+        <div class="page" id="page-2">
+            <div class="h-full flex flex-col">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-4 text-center">全体像：報告件数の急増は「透明性の向上」</h2>
+                <p class="mb-6 text-lg text-center max-w-4xl mx-auto">2021年の法改正による自主回収報告の義務化以降、食品表示違反の報告件数は急増。これは品質劣化ではなく、これまで水面下にあった事案が可視化された結果です。企業のコンプライアンス体制が、より外部から評価される時代に突入しました。</p>
+                <div class="flex-grow grid grid-cols-2 gap-12 items-center px-8">
+                    <div class="text-center p-6 bg-gray-100 rounded-lg h-full flex flex-col justify-center">
+                        <p class="text-2xl font-bold text-gray-600">2023年 食品表示違反</p>
+                        <p class="text-8xl font-bold text-[#AE2012] my-4">4,975<span class="text-4xl ml-2">件</span></p>
+                        <p class="text-2xl font-bold text-gray-600">過去最多を記録 (前年比 <span class="text-[#CA6702]">+19%</span>)</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="violationsTrendChart"></canvas>
+                    </div>
+                </div>
+                <p class="mt-4 text-sm text-gray-600 text-center">出典：全国スーパーマーケット協会「食の安心・安全」のために今、私たちにできること（2024年5月版）</p>
+            </div>
+        </div>
+
+        <div class="page" id="page-3">
+            <div class="h-full flex flex-col">
+                <h2 class="text-3xl font-bold text-center mb-6 text-[#005F73]">リスクの分解：違反はどこで発生しているか？</h2>
+                <div class="flex-grow grid grid-cols-3 gap-8 items-start">
+                    <div class="bg-white rounded-lg p-4 h-full flex flex-col">
+                        <h3 class="text-xl font-bold text-center mb-4">違反の種類別割合 (2023年)</h3>
+                        <div class="chart-container flex-grow">
+                            <canvas id="violationTypeChart"></canvas>
+                        </div>
+                        <p class="mt-2 text-center text-sm text-gray-600">アレルギーや期限表示など、消費者の安全に直結する項目が上位を占めます。</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 h-full flex flex-col">
+                        <h3 class="text-xl font-bold text-center mb-4">事業者別割合 (2023年)</h3>
+                        <div class="chart-container flex-grow">
+                            <canvas id="businessTypeChart"></canvas>
+                        </div>
+                        <p class="mt-2 text-center text-sm text-gray-600">違反の半数以上が「食品スーパーマーケット」で発生しています。</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 h-full flex flex-col">
+                        <h3 class="text-xl font-bold text-center mb-4">原因食品別割合 (2023年)</h3>
+                        <div class="chart-container flex-grow">
+                            <canvas id="foodCategoryChart"></canvas>
+                        </div>
+                        <p class="mt-2 text-center text-sm text-gray-600">店内調理の「惣菜」が突出。複雑な工程がエラーの温床です。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page" id="page-4">
+             <div class="h-full flex flex-col justify-center">
+                <h2 class="text-3xl font-bold text-[#005F73] mb-4 text-center">ベンチマーク：エフコープの立ち位置</h2>
+                <p class="mb-8 text-lg text-center max-w-4xl mx-auto">全国スーパーマーケット業界の「売上10億円あたりの違反発生率」を基に、エフコープのインシデント件数を推定。表面化されていない件数と求められるパフォーマンスを考慮した数値をＡＩにより算出しました</p>
+                <div class="grid grid-cols-2 gap-12 px-8">
+                    <div class="kpi-card bg-gray-100 rounded-lg p-8 text-center flex flex-col justify-center">
+                        <h3 class="text-2xl font-bold text-gray-700">業界平均に基づく基礎推定</h3>
+                        <p class="text-8xl font-bold text-[#CA6702] my-4"> 約1.13　<span class="text-3xl">件/年</span></p>
+                        <p class="text-base">全国スーパーマーケットの売上規模と違反件数から算出</p>
+                    </div>
+                    <div class="kpi-card bg-gray-100 rounded-lg p-8 text-center flex flex-col justify-center">
+                        <h3 class="text-2xl font-bold text-gray-700">ＡＩによる調整後 期待値</h3>
+                        <p class="text-8xl font-bold text-[#0A9396] my-4">1.0-2.0 <span class="text-3xl">件/年</span></p>
+                        <p class="text-base">表面化されていない件数を考慮した上で独自の品質保証システムを考慮した数値をＡＩにより算出</p>
+                    </div>
+                </div>
+                 <p class="mt-8 text-lg text-gray-600 text-center">この「年間約1.0～2.0件」が、内部実績を評価する上での客観的なベンチマークとなります。</p>
+            </div>
+        </div>
+
+    <div class="nav-container">
+        <button id="prevBtn" class="nav-button">前のページ</button>
+        <div id="pageIndicator" class="page-number">1 / 4</div>
+        <button id="nextBtn" class="nav-button">次のページ</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pages = document.querySelectorAll('.page');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const pageIndicator = document.getElementById('pageIndicator');
+            let currentPage = 0;
+
+            function showPage(index) {
+                pages.forEach((page, i) => {
+                    page.classList.toggle('active', i === index);
+                });
+                pageIndicator.textContent = `${index + 1} / ${pages.length}`;
+                prevBtn.disabled = index === 0;
+                nextBtn.disabled = index === pages.length - 1;
+                prevBtn.style.opacity = index === 0 ? '0.4' : '1';
+                nextBtn.style.opacity = index === pages.length - 1 ? '0.5' : '1';
+            }
+
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 0) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < pages.length - 1) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+
+            showPage(currentPage);
+
+            const wrapLabel = (label, maxLength = 16) => {
+                if (label.length <= maxLength) return label;
+                const words = label.replace(/（/g, ' （').replace(/）/g, '） ').split(' ');
+                const lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length > maxLength && currentLine.length > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = word + ' ';
+                    } else {
+                        currentLine += word + ' ';
+                    }
+                });
+                lines.push(currentLine.trim());
+                return lines;
+            };
+            
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                return Array.isArray(label) ? label.join(' ') : label;
+            };
+            
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 12 } }
+                    },
+                    tooltip: {
+                        callbacks: { title: tooltipTitleCallback },
+                        backgroundColor: '#005F73',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        padding: 10
+                    }
+                }
+            };
+
+            const brilliantBluesPalette = {
+                blueGreen: '#0A9396',
+                lightBlue: '#94D2BD',
+                yellow: '#E9D8A6',
+                orange: '#EE9B00',
+                darkOrange: '#CA6702',
+                redOrange: '#BB3E03',
+                darkRed: '#AE2012'
+            };
+
+            new Chart(document.getElementById('violationsTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: ['2021年', '2022年', '2023年'],
+                    datasets: [{
+                        label: '食品表示違反 公表件数',
+                        data: [4975 / 2, 4180, 4975], 
+                        fill: true,
+                        backgroundColor: 'rgba(10, 147, 150, 0.2)',
+                        borderColor: brilliantBluesPalette.blueGreen,
+                        tension: 0.1,
+                        pointBackgroundColor: brilliantBluesPalette.blueGreen,
+                        pointRadius: 5
+                    }]
+                },
+                options: { ...commonChartOptions, plugins: { ...commonChartOptions.plugins, legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            new Chart(document.getElementById('violationTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['アレルギー表示', '添加物', '原材料名', '期限表示', 'その他'],
+                    datasets: [{
+                        label: '違反割合',
+                        data: [21, 16, 12, 12, 39],
+                        backgroundColor: [brilliantBluesPalette.darkRed, brilliantBluesPalette.redOrange, brilliantBluesPalette.darkOrange, brilliantBluesPalette.orange, brilliantBluesPalette.lightBlue],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: { ...commonChartOptions, cutout: '60%' }
+            });
+
+            new Chart(document.getElementById('businessTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: [wrapLabel('食品スーパーマーケット'), wrapLabel('製造小売業'), '食品メーカー', 'その他'],
+                    datasets: [{
+                        label: '事業者割合',
+                        data: [54, 16, 14, 16],
+                        backgroundColor: [brilliantBluesPalette.blueGreen, brilliantBluesPalette.lightBlue, brilliantBluesPalette.yellow, '#CCCCCC'],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: { ...commonChartOptions, cutout: '60%' }
+            });
+            
+            new Chart(document.getElementById('foodCategoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: [wrapLabel('調理食品（惣菜など）'), wrapLabel('菓子類'), wrapLabel('めん類・パン類'), 'その他'],
+                    datasets: [{
+                        label: '原因食品の割合 (%)',
+                        data: [45, 15, 11, 29],
+                        backgroundColor: [brilliantBluesPalette.redOrange, brilliantBluesPalette.orange, brilliantBluesPalette.yellow, brilliantBluesPalette.lightBlue],
+                        borderRadius: 5
+                    }]
+                },
+                options: { ...commonChartOptions, indexAxis: 'y', plugins: { ...commonChartOptions.plugins, legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { display: false } }, y: { grid: { display: false } } } }
+            });
+        });
+    </script>
+</body>
+</html>
