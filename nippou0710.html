@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今週の担当者日報インタラクティブダッシュボード</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Harmony Neutrals -->
+    <!-- Application Structure Plan: 提供された静的な日報サマリーを、経営層や企画担当者が迅速に状況を把握し、詳細を深掘りできる対話的なツールへと変換するため、3つの主要セクションから成るタブ形式のダッシュボード構造を設計しました。1)「ダッシュボード」では、報告カテゴリの割合や支所別の報告数をチャートで視覚化し、全体像を瞬時に把握できます。2)「現場の声一覧」では、カテゴリや支所でフィルタリング可能な詳細レポートリストを提供し、具体的な事象の確認を可能にします。3)「重要課題ハイライト」では、報告書で特に指摘された戦略的課題を抽出し、対策立案を促します。この構造は、情報を「概要→詳細→アクション」という自然な思考プロセスに沿って提示することで、ユーザーの理解と分析を効率化することを目的としています。 -->
+    <!-- Visualization & Content Choices: 報告書が主に定性的なテキスト情報であるため、量的分析を可能にするための可視化を選択しました。報告カテゴリの構成比を示すためには「ドーナツチャート」（Chart.js）が最適です。これにより、どの種類のフィードバックが多いかを一目で比較できます。支所ごとの活動量を比較するためには「棒グラフ」（Chart.js）を使用します。これにより、支所間の報告数の差異が明確になります。生の報告内容は、フィルタリングと検索が可能な「インタラクティブなカードリスト」（HTML/CSS/JS）で提示します。これにより、ユーザーは関心のある特定の声に容易にアクセスできます。これらの選択は、テキストベースの情報を実用的な洞察に変えるための最良の方法です。 -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            background-color: #F8F7F4; /* Warm neutral background */
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            margin: auto;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            color: #3B82F6; /* blue-500 */
+            border-bottom-color: #3B82F6;
+        }
+        .kpi-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .report-card {
+            transition: box-shadow 0.3s ease;
+        }
+        .report-card:hover {
+             box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="min-h-screen">
+        <header class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <h1 class="text-2xl font-bold text-gray-900">今週の担当者日報インタラクティブダッシュボード</h1>
+                <p class="text-sm text-gray-500">2025年7月1週 (7/1 - 7/5)</p>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button id="tab-btn-dashboard" class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        ダッシュボード
+                    </button>
+                    <button id="tab-btn-reports" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        現場の声一覧
+                    </button>
+                    <button id="tab-btn-issues" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        重要課題ハイライト
+                    </button>
+                </nav>
+            </div>
+
+            <div id="tab-content-dashboard">
+                <section id="kpi-section">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center mb-8">
+                        <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                            <p class="text-3xl font-bold text-blue-600" id="total-reports">0</p>
+                            <p class="text-sm font-medium text-gray-500 mt-1">総報告数</p>
+                        </div>
+                        <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                            <p class="text-3xl font-bold text-green-600" id="thanks-reports">0</p>
+                            <p class="text-sm font-medium text-gray-500 mt-1">感謝の声</p>
+                        </div>
+                        <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                            <p class="text-3xl font-bold text-red-600" id="kaizen-reports">0</p>
+                            <p class="text-sm font-medium text-gray-500 mt-1">課題・改善要請</p>
+                        </div>
+                        <div class="kpi-card bg-white p-5 rounded-xl shadow-sm">
+                            <p class="text-3xl font-bold text-purple-600" id="renkei-reports">0</p>
+                            <p class="text-sm font-medium text-gray-500 mt-1">連携・チームワーク</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h2 class="text-lg font-semibold mb-4">報告カテゴリの内訳</h2>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h2 class="text-lg font-semibold mb-4">支所別の報告数</h2>
+                        <div class="chart-container">
+                            <canvas id="branchChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div id="tab-content-reports" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <div class="flex-1">
+                            <label for="filter-branch" class="block text-sm font-medium text-gray-700">支所</label>
+                            <select id="filter-branch" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="all">すべての支所</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label for="filter-category" class="block text-sm font-medium text-gray-700">カテゴリ</label>
+                            <select id="filter-category" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="all">すべてのカテゴリ</option>
+                            </select>
+                        </div>
+                         <div class="flex-1">
+                            <label for="search-input" class="block text-sm font-medium text-gray-700">キーワード検索</label>
+                            <input type="text" id="search-input" class="mt-1 block w-full pl-3 pr-4 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="例: 共済, 米, 暑い...">
+                        </div>
+                    </div>
+                    <div id="report-list" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-content-issues" class="hidden">
+                 <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-bold mb-4">今週の重要課題ハイライト</h2>
+                    <p class="text-gray-600 mb-6">日報から抽出された、特に注意を要する課題です。クリックして詳細を確認してください。</p>
+                    <div class="space-y-4" id="issues-accordion">
+                        <div class="border border-red-200 bg-red-50 rounded-lg">
+                            <button class="accordion-header w-full flex justify-between items-center text-left p-4">
+                                <span class="font-semibold text-red-800">猛暑対策の強化に関する現場からの切実な要望</span>
+                                <span class="accordion-icon text-red-600 transform transition-transform">▼</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 border-t border-red-200">
+                                <p class="text-gray-700">連日の酷暑に対し、現行の対策（飲料、塩分タブレット支給）では不十分との声が複数上がっています。特に空調服の全員支給や飲料の増量など、より踏み込んだ対策が求められています。スタッフの安全確保は事業継続の根幹に関わる喫緊の課題です。</p>
+                                <ul class="mt-4 list-disc list-inside text-sm text-gray-600 space-y-2">
+                                    <li><strong>新門司・岳人 渡邊:</strong> 「空調服着用でなんとかしのげているが、本来なら全員に支給すべきではないか？死人が出てからでは遅過ぎる。」</li>
+                                    <li><strong>久留米・幡保 隆希:</strong> 「ここ最近の異常な暑さでは、正直飲料水3本は足りない。熱中症対策水を2本にするなど支給本数を増やしてほしい。」</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                         <div class="border border-yellow-200 bg-yellow-50 rounded-lg">
+                            <button class="accordion-header w-full flex justify-between items-center text-left p-4">
+                                <span class="font-semibold text-yellow-800">お米の抽選販売に対する組合員の不満と不安</span>
+                                <span class="accordion-icon text-yellow-600 transform transition-transform">▼</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 border-t border-yellow-200">
+                                <p class="text-gray-700">主食であるお米が抽選で届かないことに対し、組合員から強い不満や不安の声が寄せられています。安定供給への期待が大きい分、丁寧な説明と今後の供給体制に関する明確な情報発信が不可欠です。</p>
+                                <ul class="mt-4 list-disc list-inside text-sm text-gray-600 space-y-2">
+                                    <li><strong>八幡西・田崎 広也:</strong> 「配達中にお米に関する質問やお声が多い印象。連続で抽選に外れている方も意外といらっしゃる。」</li>
+                                    <li><strong>新宮・崎村 紳平:</strong> 「お米が届かないとはふざけているのでは？というお申し出があった。主食である以上は丁寧な対応が必要。」</li>
+                                    <li><strong>宗像・吉田 重美:</strong> 「いつも注文して落選する組合員さんもいる中で、もう少し平等な抽選にできないのかなと思う。」</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                         <div class="border border-blue-200 bg-blue-50 rounded-lg">
+                            <button class="accordion-header w-full flex justify-between items-center text-left p-4">
+                                <span class="font-semibold text-blue-800">手数料・システム利用料改定への反応とフォロー</span>
+                                <span class="accordion-icon text-blue-600 transform transition-transform">▼</span>
+                            </button>
+                            <div class="accordion-content hidden p-4 border-t border-blue-200">
+                                <p class="text-gray-700">手数料の値上げが利用休止や脱退の直接的な原因となるケースが発生しています。特に、普段あまり注文しない方やネット注文の方へ情報が届いていない実態が報告されており、個別の丁寧なフォローアップが求められます。</p>
+                                <ul class="mt-4 list-disc list-inside text-sm text-gray-600 space-y-2">
+                                    <li><strong>西港・荒木 梨々香:</strong> 「手数料が上がるから7月からやめると宣言していた組合員が『もう少し悩んでもいい？』と。脱退はまぬがれた。」</li>
+                                    <li><strong>京築・小田 晃太:</strong> 「手数料の件で脱退された方から『本当は利用したいんやけどね…』と言われた。」</li>
+                                     <li><strong>京築・名場 学:</strong> 「ネット注文の方がシステム利用料の値上げを知らずに質問してきた。メール等でのケアが必要。」</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const reportsData = [
+        { id: 1, branch: '西港', staff: '荒木 梨々香', category: '組合員との関係構築', content: 'さっきまでコープさん来るねと楽しみに待っていたのに寝ちゃった!と奥さんに言われました。94歳のおじいちゃんが毎週楽しみにしてくれているのはとっても嬉しいです。来週こそは会えるよう寝てしまう前に行きたいと思います。' },
+        { id: 2, branch: '西港', staff: '荒木 梨々香', category: '重点課題', content: '手数料が上がるから7月からやめると宣言していた組合員が「やっぱりもう少し悩んでもいい？」と言ってくれました。毎週頼む人ではなくカタログのみでお金がかかるのがネックのようでとりあえず休止してCOOPでしか買えない商品とかもあるから･･･と脱退はまぬがれました。' },
+        { id: 3, branch: '西港', staff: '浅井 弘毅', category: '重点課題', content: '先週ネットで加入された方にダメもとで共済の話を軽くしてみたらちょうど子供を入れようと考えていたという事でした。言ってよかったです。' },
+        { id: 4, branch: '西港', staff: '里中 大地', category: '感謝の声', content: '先週広報から加入された方から「あなた優しいね〜」と言われました(笑)1回目の配達利用から気持ちよく利用して頂いて嬉しいです!' },
+        { id: 5, branch: '西港', staff: '山内 英児', category: '重点課題', content: '以前共済アンケートで娘さんの保障が気になるとの事で案内したのですが、電話でやっぱり大丈夫と言われて今日また改めて旧ガンの話をしたら、前と違う反応で娘さんの件もぜひ聞いてみてくださいとお約束になりました。何事もトライが大事です。' },
+        { id: 6, branch: '西港', staff: '濱田誠真', category: '重点課題', content: 'Jコースの加入者に3大パンフ見せながらおススメしていると、3大はほぼ入りそうな感じでその流れで、終身の話をすると、中身を全く理解しておらず大まかに話し、おススメしていると食いつきがよく、来週予定をみてくれることになりました。' },
+        { id: 7, branch: '西港', staff: '濱田誠真', category: 'チームワーク', content: '今日は共済、仲間の紹介キャンペーンを話していきました。共済は森山さんから教えてもらったことを少しずつ実践しながら身に付けていきたいです。' },
+        { id: 8, branch: '西港', staff: '山内 英児', category: 'チームワーク', content: '今日は自グループの岡元さんと竹内さんが成約いただいていて、岡元さんもすごく喜んでいてよかったです。成約になればもっとやる気が出るので頑張っていきましょうと午後の配達時、鼓舞しあいました。' },
+        { id: 9, branch: '西港', staff: '坂田 由美子', category: '重点課題', content: 'はじめて箱で行ったとき、共済お断りしたと話されていた組合員、Jコース30まで延びたんですよと話すと、興味を持ってくださり幼稚園は今年分払ってしまっているのでキリのいいところで切り替えてくれるそうです。' },
+        { id: 10, branch: '西港', staff: '橋本 宙夢', category: '重点課題', content: '共済の案内をたくさんしました。中でも印象的だったものを”当日メモ”に入れています。お断りでしたが、きちんと案内できたので悪い気はしませんでした。' },
+        { id: 11, branch: '西港', staff: '和田上 祐太', category: 'その他', content: '最近WEB加入がかなり増えてきている印象があります。なかなかお会いできないかたばかりですがタイミングみていきます。' },
+        { id: 12, branch: '西港', staff: '北原 稔英', category: '重点課題', content: '今日お声掛けした方は、弱視のようで昔エフコープを利用していらっしゃったかたでお約束となりました。ご近所さんが利用していて元気な声がいつも聞こえるよと嬉しい言葉を頂きました。' },
+        { id: 13, branch: '西港', staff: '毛利一', category: '感謝の声', content: '何年か前、倒れて人工関節入れてうまく歩けない組合員さんがから生協さんには助けられています、という声を頂きました。自分のエリアは歩行が困難な組合員さんが多いです。' },
+        { id: 14, branch: '西港', staff: '荒木 梨々香', category: '重点課題', content: '今日はタイミングよく仲間・共済・電気とお約束頂く事が出来ました。今の地区も2年目となり良い関係性の中で私としても話しやすい部分いがあると感じます。' },
+        { id: 15, branch: '西港', staff: '濱田 誠真', category: '商品関連', content: '夏ギフト、ウナギの予約は目標を何とかクリアできてよかったです。新規の方が少なかったのでそこが反省です。' },
+        { id: 16, branch: '西港', staff: '山内 英児', category: '商品関連', content: '今日はお米の話を組合員さんとして備蓄米があまり美味しくなく、生協で頼んでいてよかったと言われました。' },
+        { id: 17, branch: '西港', staff: '吉岡稔', category: '安全・労安', content: '横断歩道を渡り切れていない高齢者を、自転車のお兄さんが誘導している素晴らしい光景を見て晴れ晴れとした気分になりました。' },
+        { id: 18, branch: '八幡西', staff: '黒木健勝', category: '商品関連', content: 'うなぎの予約で安くなるのを知らない方がいらっしゃったので、もっとオススメし甲斐が出来ました。' },
+        { id: 19, branch: '八幡西', staff: '田崎広也', category: '商品関連', content: '配達中にお米に関する質問やお声が多い印象でした。連続で抽選に外れている方も意外といらっしゃいました。' },
+        { id: 20, branch: '八幡西', staff: '山本匠', category: '業務改善', content: '休憩時間は変わらずですが、午後がかなり楽になりました。時間が早くなった組合員さんも喜ばれている方が数名いました。' },
+        { id: 21, branch: '八幡西', staff: '秋丸朱里', category: '課題・改善要請', content: '今日、エフフレンズの報告書を見るとお米のことが多く、私のコースは夫婦2人だけの方が多いので、2キロの企画も出してほしいとご要望でした。' },
+        { id: 22, branch: '八幡西', staff: '山本匠', category: '商品関連', content: 'しいたけの案内をした方で、お届けした際に「結構立派な椎茸だね」と喜ばれていました。' },
+        { id: 23, branch: '八幡西', staff: '千代谷和昌', category: '感謝の声', content: 'いつもくんキャンペーンでジャワティをもらった組合員さんが喜ばれていました。' },
+        { id: 24, branch: '新門司', staff: '下迫悠輝', category: '課題・改善要請', content: '実績の入力を各自のスマートフォンにてその場でカウント入力をできるようにして欲しいです。配達終了後何件会話したかほんとに忘れます。' },
+        { id: 25, branch: '新門司', staff: '岳人 渡邊', category: '課題・改善要請', content: '連日酷暑が続いております。エフコープの熱中症対策は本当に十分なのでしょうか？本来なら配達及び支所積み込み作業に関わる全員に空調服を支給すべきではないでしょうか？' },
+        { id: 26, branch: '新門司', staff: '下追 悠輝', category: '課題・改善要請', content: 'OCRの学習会内容よかったが、自分たち担当に言うよりも組合員さんに直で言って欲しいです。注文書にまとめた1枚を差し込むみたいなことをした方が効果があると思います。' },
+        { id: 27, branch: '新門司', staff: '松本 啓輔', category: '感謝の声', content: '昔利用されていて久しぶりに利用再開された方が電話で「いろいろ載っててカタログ見るのが楽しくてしょうがない」と喜んでおられました。' },
+        { id: 28, branch: '新門司', staff: '健太郎 里口', category: '課題・改善要請', content: '朝礼でエコドライブの話がありましたが、冬にしか使わないタイヤチェーンを乗せっぱなしなのは燃費を考えたらどうなのかなと思ってました。倉庫で保管してもらえると助かるのですが。' },
+        { id: 29, branch: '志免', staff: '堀本 慶太', category: '商品関連', content: 'しいたけですが、試食で塩コショウして食べたので、配達先の皆さんに広めています。' },
+        { id: 30, branch: '京築', staff: '清家淳さん', category: '課題・改善要請', content: 'もしよければ熱中症にならないためにした方がいいことや、熱中症の初期症状などを共有していただけないでしょうか？' },
+        { id: 31, branch: '京築', staff: '清家淳さん', category: '感謝の声', content: '不在の組合員さんが手紙を書いてくれていました。米不足だが生協はきちんと届けてくれるので助かっていると書かれていました。' },
+        { id: 32, branch: '京築', staff: '堀口 晃さん', category: '安全・労安', content: 'プラットにつけるトラックの荷台の扉を開けてあげるのはやらないようになっているはずですが、今でもやっている人をたまに見かけます。非常に危険なので再度徹底したほうがいいと思いました。' },
+        { id: 33, branch: '京築', staff: '小田晃太さん', category: '重点課題', content: '手数料の件で脱退された組合員さんのところに箱回収に行ったらお会いできて「本当は良いと思うし、利用したいんやけどね…」と言われていました。' },
+        { id: 34, branch: '京築', staff: '名場学さん', category: '課題・改善要請', content: 'KKの組合員さんが明細を持ってこられてシステム利用料?って上がったんですか?とたずねてこられました。ネット注文の方はチラシに目を通していないのでメールするなどのケアが必要かと思いました。' },
+        { id: 35, branch: '太宰府', staff: '平井菜々子', category: '商品関連', content: '今日はいつもより冷凍品が多く、理由をきくとアイスとかは帰り道で溶けるから生協で注文するとのことでした。おすすめに使えるなと思いました。' },
+        { id: 36, branch: '太宰府', staff: '竹ノ上 清', category: '課題・改善要請', content: 'ドライの商品をお渡しする時に熱いくらいの状態の時がありトラックの中の気温でその状態になっています。これはどうしようもないと思いますが組合員さんにお渡しする時に組合員さんも感じておられると思います。' },
+        { id: 37, branch: '太宰府', staff: '隱塚 慎一', category: 'チームワーク', content: '同じグループの住吉さんが太宰府最終日という事で、最後までグループメンバーを鼓舞し尽力されていました。来週からまた新たな気持ちで住吉さんの分まで頑張らなくてはと気が引き締まる思いです。' },
+        { id: 38, branch: '筑後', staff: '古賀邦宏', category: '課題・改善要請', content: 'ドライ集品の殺虫剤が荷台の天井付近に積まれていた為、かなり高温になっており組合員さんから注意を受けました。高温だと破裂の危険性があり、対策が必要だと感じました。' },
+        { id: 39, branch: '早良', staff: '津田 隆太郎', category: '感謝の声', content: '本日配達時にお会いした際に再度確認させてもらいその場でログイン無事にでき喜んで頂けました。事前電話入れの大切さを再確認しました。' },
+        { id: 40, staff: '佐藤 亮介', branch: '太宰府', category: 'チームワーク', content: '終身を案内し聞いた事ないとお約束になりました。ロープレをして頂いた松田さん、尾崎さんありがとうございました。'},
+        { id: 41, staff: '尾崎 七瀬', branch: '太宰府', category: 'チームワーク', content: '上期三課題達成することができました。遅い時間の対応も快く引き受けてくださった推進さんにも感謝です。'},
+        { id: 42, branch: '久留米', staff: '江下友介さん', category: 'チームワーク', content: 'どうやったら原さんと共済のお約束が繋がるのか話し合いを常々行っています。その中で、推進さんたちが対応時にどのようなアプローチをしているのかも知りたいと話がまとまりました。月曜午前中に品川さんや前山さんからの勉強会を開いていただくことは可能でしょうか。' },
+        { id: 43, branch: '久留米', staff: '幡保隆希さん', category: '課題・改善要請', content: 'ここ最近の異常な暑さでは、正直飲料水3本は足りないので、熱中症対策水を2本にするなどして飲料水の支給本数を増やしていただきたいです。ご検討よろしくお願いいたします。' },
+        { id: 44, branch: '久留米', staff: '辰田幸平さん', category: '課題・改善要請', content: '冷凍の蓄冷剤を多めに持ち出していますが、今日足りなくなり中島さんに少し分けてもらいました。Zパックに入れている蓄冷剤の枚数を増やす事はできないでしょうか？' },
+        { id: 45, branch: '糸島', staff: '坂口 優佳', category: '組合員との関係構築', content: '組合員さんのお隣さんが、退院するので生協を利用したいとの事で紹介して頂きました。いざ必要になったときにお役に立てるようにお声掛けしていきたいなと思いました。' },
+        { id: 46, branch: '大牟田', staff: '高木 翔太郎', category: 'チームワーク', content: '大木さんに同乗ありがとうございました。色々気になっている事や荷台での作業などたくさんアドバイスを貰えたので明日から活かしていきたいと思います。' },
+        { id: 47, branch: '宗像', staff: '伊藤 千春', category: '組合員との関係構築', content: '3年半ぶりにお会いした組合員さんが私の事を覚えていてくださっていました。更に最近47コースでニュースを書き始めたのですが、それも楽しみに読んでいますと仰ってくださいました。' },
+        { id: 48, branch: '城南', staff: '中浦 彩さん', category: '重点課題', content: '上期共済目標達成しました。これからもあまり数値のことは気にせず、組合員さんに案内を続けていきたいです。' },
+        { id: 49, branch: '久留米', staff: '前山 涼香', category: '商品関連', content: 'キューピーのベビーフードが2026年8月末で販売終了になることをママさんに聞きました。ドラッグストアなどでも多く置いてある会社ですが原材料の高騰や販売数の低迷が原因みたいです。お店のベビーフードが減り、最近グリーンコープも離乳食始めているみたいなので離乳食といえばコープというような時代になるのかなと嬉しく思った反面、このまま物価高になればコープも継続が厳しくなるのかなとも思いました。愛用していただいている方たくさんいらっしゃるので逆にこのままさらに商品が増えていけば嬉しいなと思っています。' }
+    ];
+
+    const tabs = [
+        { btn: 'tab-btn-dashboard', content: 'tab-content-dashboard' },
+        { btn: 'tab-btn-reports', content: 'tab-content-reports' },
+        { btn: 'tab-btn-issues', content: 'tab-content-issues' },
+    ];
+
+    const filters = {
+        branch: 'all',
+        category: 'all',
+        search: ''
+    };
+    
+    let categoryChart, branchChart;
+
+    const categoryColors = {
+        '感謝の声': '#16A34A', // green-600
+        '課題・改善要請': '#DC2626', // red-600
+        '重点課題': '#2563EB', // blue-600
+        '商品関連': '#F97316', // orange-500
+        'チームワーク': '#9333EA', // purple-600
+        '安全・労安': '#FBBF24', // amber-400
+        '組合員との関係構築': '#EC4899', // pink-500
+        '業務改善': '#14B8A6', // teal-500
+        'その他': '#6B7280', // gray-500
+    };
+
+    function switchTab(targetId) {
+        tabs.forEach(tab => {
+            const tabBtn = document.getElementById(tab.btn);
+            const tabContent = document.getElementById(tab.content);
+            if (tab.btn === targetId) {
+                tabBtn.classList.add('active');
+                tabContent.classList.remove('hidden');
+            } else {
+                tabBtn.classList.remove('active');
+                tabContent.classList.add('hidden');
+            }
+        });
+    }
+
+    function getCategoryColor(category) {
+        return categoryColors[category] || '#6B7280';
+    }
+
+    function aggregateData(data) {
+        const categoryCounts = {};
+        const branchCounts = {};
+
+        data.forEach(report => {
+            categoryCounts[report.category] = (categoryCounts[report.category] || 0) + 1;
+            branchCounts[report.branch] = (branchCounts[report.branch] || 0) + 1;
+        });
+        
+        return { categoryCounts, branchCounts };
+    }
+
+    function renderKPIs(data, categoryCounts) {
+        document.getElementById('total-reports').textContent = data.length;
+        document.getElementById('thanks-reports').textContent = categoryCounts['感謝の声'] || 0;
+        document.getElementById('kaizen-reports').textContent = categoryCounts['課題・改善要請'] || 0;
+        document.getElementById('renkei-reports').textContent = categoryCounts['チームワーク'] || 0;
+    }
+
+    function renderCategoryChart(categoryCounts) {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        const labels = Object.keys(categoryCounts);
+        const data = Object.values(categoryCounts);
+        const backgroundColors = labels.map(label => getCategoryColor(label));
+
+        if (categoryChart) {
+            categoryChart.destroy();
+        }
+
+        categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: '#F8F7F4',
+                    borderWidth: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percentage = (context.parsed / total * 100).toFixed(1);
+                                    label += `${context.raw}件 (${percentage}%)`;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const clickedLabel = categoryChart.data.labels[elements[0].index];
+                        filters.category = clickedLabel;
+                        document.getElementById('filter-category').value = clickedLabel;
+                        switchTab('tab-btn-reports');
+                        renderReportList();
+                    }
+                }
+            }
+        });
+    }
+
+    function renderBranchChart(branchCounts) {
+        const ctx = document.getElementById('branchChart').getContext('2d');
+        const sortedBranches = Object.entries(branchCounts).sort(([,a],[,b]) => b-a);
+        const labels = sortedBranches.map(entry => entry[0]);
+        const data = sortedBranches.map(entry => entry[1]);
+        
+        if(branchChart) {
+            branchChart.destroy();
+        }
+
+        branchChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '報告数',
+                    data: data,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                 onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const clickedLabel = branchChart.data.labels[elements[0].index];
+                        filters.branch = clickedLabel;
+                        document.getElementById('filter-branch').value = clickedLabel;
+                        switchTab('tab-btn-reports');
+                        renderReportList();
+                    }
+                }
+            }
+        });
+    }
+
+    function populateFilters(data, { categoryCounts, branchCounts }) {
+        const branchFilter = document.getElementById('filter-branch');
+        Object.keys(branchCounts).sort().forEach(branch => {
+            const option = document.createElement('option');
+            option.value = branch;
+            option.textContent = branch;
+            branchFilter.appendChild(option);
+        });
+
+        const categoryFilter = document.getElementById('filter-category');
+        Object.keys(categoryCounts).sort().forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+    }
+
+    function renderReportList() {
+        const listContainer = document.getElementById('report-list');
+        listContainer.innerHTML = '';
+        
+        const filteredData = reportsData.filter(report => {
+            const branchMatch = filters.branch === 'all' || report.branch === filters.branch;
+            const categoryMatch = filters.category === 'all' || report.category === filters.category;
+            const searchMatch = filters.search === '' || 
+                                report.content.toLowerCase().includes(filters.search.toLowerCase()) ||
+                                report.staff.toLowerCase().includes(filters.search.toLowerCase()) ||
+                                report.branch.toLowerCase().includes(filters.search.toLowerCase());
+            return branchMatch && categoryMatch && searchMatch;
+        });
+
+        if (filteredData.length === 0) {
+            listContainer.innerHTML = `<p class="text-center text-gray-500 py-8">該当する報告はありません。</p>`;
+            return;
+        }
+
+        filteredData.forEach(report => {
+            const card = document.createElement('div');
+            card.className = 'report-card bg-gray-50 p-4 rounded-lg border border-gray-200';
+            const categoryColor = getCategoryColor(report.category);
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-semibold text-gray-800">${report.branch} / ${report.staff}</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background-color: ${categoryColor}20; color: ${categoryColor};">
+                           ${report.category}
+                        </span>
+                    </div>
+                </div>
+                <p class="mt-2 text-gray-700 text-sm leading-relaxed">${report.content.replace(/\n/g, '<br>')}</p>
+            `;
+            listContainer.appendChild(card);
+        });
+    }
+
+    function setupEventListeners() {
+        tabs.forEach(tab => {
+            document.getElementById(tab.btn).addEventListener('click', () => switchTab(tab.btn));
+        });
+
+        document.getElementById('filter-branch').addEventListener('change', (e) => {
+            filters.branch = e.target.value;
+            renderReportList();
+        });
+
+        document.getElementById('filter-category').addEventListener('change', (e) => {
+            filters.category = e.target.value;
+            renderReportList();
+        });
+        
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            filters.search = e.target.value;
+            renderReportList();
+        });
+
+        document.querySelectorAll('.accordion-header').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('.accordion-icon');
+                content.classList.toggle('hidden');
+                icon.classList.toggle('rotate-180');
+            });
+        });
+    }
+
+    function init() {
+        const aggregated = aggregateData(reportsData);
+        renderKPIs(reportsData, aggregated.categoryCounts);
+        renderCategoryChart(aggregated.categoryCounts);
+        renderBranchChart(aggregated.branchCounts);
+        populateFilters(reportsData, aggregated);
+        renderReportList();
+        setupEventListeners();
+    }
+
+    init();
+});
+</script>
+
+</body>
+</html>
