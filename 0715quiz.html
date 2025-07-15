@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会計クイズ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #50e3c2;
+            --correct-color: #7ed321;
+            --wrong-color: #d0021b;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+            --light-text: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            margin: 0;
+            padding: 1rem;
+            color: var(--dark-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            text-align: center;
+        }
+
+        #startBtn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--light-text);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        #startBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Quiz Screen --- */
+        #quiz-screen {
+            display: none;
+        }
+        
+        #progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .question-container {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .question-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            background-color: var(--light-text);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option-btn .option-prefix {
+            font-weight: 800;
+            margin-right: 0.75rem;
+        }
+
+        .option-btn:not(:disabled):hover {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            border-color: var(--correct-color);
+            color: var(--light-text);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            border-color: var(--wrong-color);
+            color: var(--light-text);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        
+        #explanation-area {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #e9ecef;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary-color);
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        #explanation-area h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        /* --- Result Screen --- */
+        #result-screen {
+            display: none;
+            text-align: center;
+        }
+        
+        #result-screen h2 {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        #score-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 1rem 0 2rem;
+        }
+        
+        .result-table-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .result-table th, .result-table td {
+            padding: 0.8rem 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .result-table th {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            font-weight: 700;
+        }
+        
+        .result-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .result-table .correct-answer-row {
+            background-color: #e6ffed;
+        }
+
+        .result-table .wrong-answer-row {
+            background-color: #ffebee;
+        }
+        
+        .result-table .user-answer.correct {
+            color: var(--correct-color);
+            font-weight: bold;
+        }
+        
+        .result-table .user-answer.wrong {
+            color: var(--wrong-color);
+            font-weight: bold;
+            text-decoration: line-through;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 0.5rem; }
+            .container { padding: 1.5rem; }
+            .question-container h2 { font-size: 1.2rem; }
+            .option-btn { font-size: 0.9rem; padding: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="start-screen">
+            <h1>会計力アップクイズ</h1>
+            <p>会社の財務諸表に関する知識を試してみよう！</p>
+            <button id="startBtn">クイズをはじめる</button>
+        </div>
+
+        <div id="quiz-screen">
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div id="question-number"></div>
+            <div class="question-container">
+                <h2 id="question-text"></h2>
+                <div id="options-grid" class="options-grid"></div>
+            </div>
+            <div id="explanation-area">
+                <h3 id="explanation-title"></h3>
+                <p id="explanation-text"></p>
+            </div>
+        </div>
+
+        <div id="result-screen">
+            <h2>クイズ終了！</h2>
+            <p id="score-text"></p>
+            <div class="result-table-container">
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>問題文</th>
+                            <th>あなたの回答</th>
+                            <th>正解</th>
+                            <th>解説</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-table-body">
+                    </tbody>
+                </table>
+            </div>
+            <button id="retryBtn" onclick="location.reload()">もう一度挑戦する</button>
+        </div>
+    </div>
+
+    <!-- Sound Effects -->
+    <audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+    <audio id="start-sound" src="start.mp3" preload="auto"></audio>
+    <audio id="correct-sound" src="correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="wrong.mp3" preload="auto"></audio>
+    <audio id="end-sound" src="end.mp3" preload="auto"></audio>
+
+    <script>
+        const quizData = [
+            { question: '会社が「うまくいっているか」を明らかにする資料は何ですか？', options: ['事業計画書', '決算書', '組織図', '顧客リスト'], correct: 1, explanation: '決算書は、一言で言えば「会社がうまくいっているかモロバレ資料」のことです。具体的には、その会社が「今どれくらいの財産を持っているか」と「最近どれくらい稼いでいるか」の二つが書かれている資料であり、企業の実態が隠さずに丸裸になります。' },
+            { question: '決算書に含まれる4つの書類の中で、特に重要とされている2つの書類は何と何ですか？', options: ['貸借対照表と株主資本等変動計算書', '損益計算書とキャッシュフロー計算書', '貸借対照表と損益計算書', 'キャッシュフロー計算書と株主資本等変動計算書'], correct: 2, explanation: '決算書には「貸借対照表」「損益計算書」「キャッシュフロー計算書」「株主資本等変動計算書」という4つの書類が含まれていますが、この中で特に大事なのは貸借対照表と損益計算書の2つとされています。キャッシュフロー計算書もやや大事ですが、この2つが主要な書類となっています。' },
+            { question: '会社が「今どれくらいの財産を持っているか」がわかる資料は、次のうちどれですか？', options: ['損益計算書（PL）', '貸借対照表（BS）', 'キャッシュフロー計算書', '株主資本等変動計算書'], correct: 1, explanation: '会社が「今どれくらいの財産を持っているか」、つまり財務状況がわかる資料は貸借対照表（BS）資産と借金のバランスがわかる資料でもあり、英語では「バランスシート (BS)」と略されます。個人に例えるなら「貯金」や「借金」が具体的に何件あるか分かる資料だと言えます。' },
+            { question: '会社が「最近どれくらい稼いでいるか（儲かっているか）」がわかる資料は、次のうちどれですか？', options: ['損益計算書（PL）', '貸借対照表（BS）', 'キャッシュフロー計算書', '株主資本等変動計算書'], correct: 0, explanation: '会社が「最近どれくらい稼いでいるか（儲かっているか）」、つまり業績がわかる資料は損益計算書（PL）どれだけ利益を稼いだか、あるいは損をしたかがわかる資料であり、英語では「プロフィット・アンド・ロス・ステートメント (PL)」と略されます。個人に例えるなら「年収」にあたります。' },
+            { question: '貸借対照表において、「すぐに現金にできる資産」や「すぐに返済が必要な借金」を表す言葉は何ですか？', options: ['固定', '長期', '流動', '短期'], correct: 2, explanation: '貸借対照表では、資産と負債の両方に「流動」と「固定」の2種類があります。流動とは「すぐに」という意味合いを持ち、例えば流動資産は「すぐに現金にできる資産」（現金や売れる在庫など）、流動負債は「すぐに返さなければいけない借金」を指します。一方、「固定」は「すぐにではない」という意味合いで、すぐに現金化できない資産や、1年以内に返済しなくてもよい借金を表します。' },
+            { question: '以下の記述は、どの業界の貸借対照表の特徴をよく表していますか？ 「すぐには現金化できない固定資産の割合が非常に大きい。」', options: ['IT業界', '小売業界', '鉄道業界', 'サービス業界'], correct: 2, explanation: 'この記述は鉄道業界の貸借対照表の特徴をよく表しています。鉄道業界は、電車車両や線路といった、すぐに現金化できない「固定資産」を膨大に持っていることが、その財産の資料（貸借対照表）の固定資産の箇所に大きく反映されます。' },
+            { question: '中古品の売買を扱うメルカリとブックオフの貸借対照表を比較した際、メルカリの特徴は以下のどれですか？', options: ['ブックオフよりも固定資産の割合が圧倒的に少ない', 'ブックオフよりも流動資産の割合が圧倒的に少ない', 'ブックオフよりも負債の割合が圧倒的に高い', 'ブックオフよりも純資産の割合が圧倒的に低い'], correct: 0, explanation: 'メルカリとブックオフの貸借対照表を比較すると、メルカリの方が固定資産の割合が圧倒的に少ないという特徴があります。メルカリはIT系のビジネスであり、顧客同士の中古品のやり取りをウェブ上のプラットフォームでマッチングさせるビジネスモデルです。そのため、中古品を保管する倉庫や販売する店舗といった大きな固定資産を必要とせず、固定資産がほぼなしでビジネスを成立させられる点が特徴です。一方、ブックオフは実店舗を持つビジネスモデルであるため、メルカリと比較すると店舗などの固定資産が多くなります。' },
+            { question: '損益計算書において、商品を販売するためにかかった従業員の給料や広告費用などを指す費用は何ですか？', options: ['売上原価', '営業外費用', '特別損失', '販管費'], correct: 3, explanation: '損益計算書における費用は、大きく「売上原価」と「販管費（販売費及び一般管理費）」に分けられます。売上原価は「商品の原価」、つまり販売する商品の仕入れにかかった金額を指します。一方、販管費は、その商品を販売するためにかかった費用全般を指し、具体的には従業員の給料や広告費用などが含まれます。例えば、ラーメン屋の例では、麺や野菜の仕入れが売上原価、バイトの給料やチラシの制作費が販管費に該当します。' },
+            { question: 'セブン-イレブンと100円ショップのキャンドゥの損益計算書を比較すると、セブン-イレブンはキャンドゥよりも何が圧倒的に低いと解説されていますか？', options: ['売上高', '販管費', '営業利益', '売上原価'], correct: 3, explanation: 'セブン-イレブンとキャンドゥの損益計算書を比較すると、セブン-イレブンの売上原価が圧倒的に低いと解説されています。これは、セブン-イレブンの**メインの収益源がフランチャイズ収入（約9割以上）**という独特のビジネスモデルに起因します。セブン-イレブン本部が商品を仕入れて販売しているわけではなく、各店舗の店長が商品を仕入れているため、本部（セブン-イレブン）の損益計算書には、商品の仕入れにかかる「売上原価」がほとんど計上されないという特徴があるのです。' },
+            { question: '企業の役員の年収や、出世ルート、転職の面接でアピールすべきポイントなど、より「生々しい情報」を読み解くことができる、年に1回発表される詳細な決算書に付随する補足情報は、次のうちどれですか？', options: ['会社四季報', '有価証券報告書', '事業報告書', '監査報告書'], correct: 1, explanation: '企業の役員の年収や出世ルート、転職の面接でアピールすべきポイントといった「生々しい情報」を読み解くことができるのは、企業が年に1回発表する「有価証券報告書」嘘なしのガチンコで書かれているため、信頼性が高いとされています。' }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let score = 0;
+
+        const startBtn = document.getElementById('startBtn');
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const questionText = document.getElementById('question-text');
+        const optionsGrid = document.getElementById('options-grid');
+        const explanationArea = document.getElementById('explanation-area');
+        const explanationTitle = document.getElementById('explanation-title');
+        const explanationText = document.getElementById('explanation-text');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const bgm = document.getElementById('bgm');
+        const sounds = {
+            start: document.getElementById('start-sound'),
+            correct: document.getElementById('correct-sound'),
+            wrong: document.getElementById('wrong-sound'),
+            end: document.getElementById('end-sound')
+        };
+
+        startBtn.addEventListener('click', startQuiz);
+
+        function playSound(soundName) {
+            if (sounds[soundName]) {
+                sounds[soundName].currentTime = 0;
+                sounds[soundName].play().catch(e => console.log("Audio play failed: ", e));
+            }
+        }
+
+        function startQuiz() {
+            playSound('start');
+            bgm.volume = 0.1;
+            bgm.play().catch(e => console.log("BGM play failed: ", e));
+            
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            explanationArea.style.display = 'none';
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            progressBar.style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
+            
+            questionText.innerHTML = `Q${currentQuestionIndex + 1}. ${currentQuestion.question}`;
+            optionsGrid.innerHTML = '';
+            
+            const prefixes = ['A', 'B', 'C', 'D'];
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> ${option}`;
+                button.addEventListener('click', () => selectAnswer(index, button));
+                optionsGrid.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedIndex, selectedButton) {
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedIndex === currentQuestion.correct;
+            
+            userAnswers[currentQuestionIndex] = selectedIndex;
+
+            if (isCorrect) {
+                playSound('correct');
+                selectedButton.classList.add('correct');
+                score++;
+            } else {
+                playSound('wrong');
+                selectedButton.classList.add('wrong');
+            }
+
+            Array.from(optionsGrid.children).forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === currentQuestion.correct) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            explanationTitle.textContent = isCorrect ? '正解！' : '残念！';
+            explanationText.textContent = currentQuestion.explanation;
+            explanationArea.style.display = 'block';
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    displayQuestion();
+                } else {
+                    showResults();
+                }
+            }, 3500);
+        }
+
+        function showResults() {
+            bgm.pause();
+            playSound('end');
+
+            quizScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+
+            const scorePercentage = Math.round((score / quizData.length) * 100);
+            document.getElementById('score-text').textContent = `あなたの正解率は ${score} / ${quizData.length} (${scorePercentage}%) でした。`;
+            
+            const tableBody = document.getElementById('result-table-body');
+            tableBody.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const userAnswerIndex = userAnswers[index];
+                const isCorrect = userAnswerIndex === q.correct;
+
+                const row = document.createElement('tr');
+                row.className = isCorrect ? 'correct-answer-row' : 'wrong-answer-row';
+                
+                const userAnswerText = userAnswerIndex !== undefined ? q.options[userAnswerIndex] : '（無回答）';
+                const userAnswerClass = isCorrect ? 'correct' : 'wrong';
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${q.question}</td>
+                    <td class="user-answer ${userAnswerClass}">${userAnswerText}</td>
+                    <td>${q.options[q.correct]}</td>
+                    <td>${q.explanation}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
