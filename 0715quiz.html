@@ -3,409 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>会計クイズ</title>
+    <title>決算書がわかる！ビジネス知識クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #50e3c2;
-            --correct-color: #7ed321;
-            --wrong-color: #d0021b;
-            --light-bg: #f8f9fa;
-            --dark-text: #343a40;
-            --light-text: #ffffff;
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
         body {
             font-family: 'M PLUS Rounded 1c', sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            margin: 0;
-            padding: 1rem;
-            color: var(--dark-text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
+            background-color: #1a202c; /* ダークグレーの背景 */
+            color: #e2e8f0; /* 明るいグレーのテキスト */
         }
-
-        .container {
-            width: 100%;
-            max-width: 900px;
+        .quiz-container {
+            max-width: 800px;
             margin: auto;
-            background: var(--card-bg);
             padding: 2rem;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.5s ease;
         }
-
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            font-weight: 800;
-            margin-bottom: 1.5rem;
+        .start-screen, .quiz-screen, .result-screen {
+            background-color: #2d3748; /* やや明るいグレーのカード背景 */
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            animation: fadeIn 0.5s ease-in-out;
         }
-
-        /* --- Start Screen --- */
-        #start-screen {
-            text-align: center;
-        }
-
-        #startBtn {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 1rem 2.5rem;
-            font-size: 1.2rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            color: var(--light-text);
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-        }
-
-        #startBtn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        /* --- Quiz Screen --- */
-        #quiz-screen {
-            display: none;
-        }
-        
-        #progress-container {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-        }
-
-        #progress-bar {
-            width: 0%;
-            height: 10px;
-            background-color: var(--secondary-color);
-            border-radius: 10px;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .question-container {
-            margin-bottom: 1.5rem;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .question-container h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .option-btn {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-            border-radius: 12px;
-            background-color: var(--light-text);
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            display: flex;
-            align-items: center;
-        }
-        
-        .option-btn .option-prefix {
-            font-weight: 800;
-            margin-right: 0.75rem;
-        }
-
-        .option-btn:not(:disabled):hover {
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-        }
-        
-        .option-btn.correct {
-            background-color: var(--correct-color);
-            border-color: var(--correct-color);
-            color: var(--light-text);
-        }
-
-        .option-btn.wrong {
-            background-color: var(--wrong-color);
-            border-color: var(--wrong-color);
-            color: var(--light-text);
-        }
-
-        .option-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.8;
-        }
-        
-        #explanation-area {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background-color: #e9ecef;
-            border-radius: 12px;
-            border-left: 5px solid var(--primary-color);
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-        
-        #explanation-area h3 {
-            margin-top: 0;
-            color: var(--primary-color);
-        }
-
-        /* --- Result Screen --- */
-        #result-screen {
-            display: none;
-            text-align: center;
-        }
-        
-        #result-screen h2 {
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-
-        #score-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 1rem 0 2rem;
-        }
-        
-        .result-table-container {
-            overflow-x: auto;
-            margin-top: 2rem;
-        }
-
-        .result-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        .result-table th, .result-table td {
-            padding: 0.8rem 1rem;
-            border: 1px solid #dee2e6;
-        }
-
-        .result-table th {
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            font-weight: 700;
-        }
-        
-        .result-table tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        
-        .result-table .correct-answer-row {
-            background-color: #e6ffed;
-        }
-
-        .result-table .wrong-answer-row {
-            background-color: #ffebee;
-        }
-        
-        .result-table .user-answer.correct {
-            color: var(--correct-color);
-            font-weight: bold;
-        }
-        
-        .result-table .user-answer.wrong {
-            color: var(--wrong-color);
-            font-weight: bold;
-            text-decoration: line-through;
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        @media (max-width: 768px) {
-            body { padding: 0.5rem; }
-            .container { padding: 1.5rem; }
-            .question-container h2 { font-size: 1.2rem; }
-            .option-btn { font-size: 0.9rem; padding: 0.8rem; }
+        .option-btn {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .option-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .correct {
+            background-color: #48bb78 !important; /* 緑 */
+            color: white !important;
+            transform: rotateX(360deg);
+        }
+        .wrong {
+            background-color: #f56565 !important; /* 赤 */
+            color: white !important;
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .result-table th, .result-table td {
+            border-color: #4a5568;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div id="start-screen">
-            <h1>会計力アップクイズ</h1>
-            <p>会社の財務諸表に関する知識を試してみよう！</p>
-            <button id="startBtn">クイズをはじめる</button>
+    <div class="quiz-container min-h-screen flex items-center">
+
+        <!-- スタート画面 -->
+        <div id="start-screen" class="w-full text-center">
+            <img src="https://hiro01200120.github.io/my-site/rogo.jpg" alt="ロゴ" class="w-full max-w-xs mx-auto mb-8 rounded-lg shadow-lg">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 mb-4">決算書がわかる！</h1>
+            <h2 class="text-2xl md:text-3xl font-bold mb-8">ビジネス知識クイズ</h2>
+            <p class="text-slate-400 mb-12">クイズに挑戦して、ビジネスの数字に強くなろう！</p>
+            <button id="start-btn" class="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white font-bold text-2xl py-4 px-12 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-300">
+                クイズ開始
+            </button>
         </div>
 
-        <div id="quiz-screen">
-            <div id="progress-container">
-                <div id="progress-bar"></div>
+        <!-- クイズ画面 -->
+        <div id="quiz-screen" class="w-full hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div id="question-counter" class="text-xl font-bold text-slate-300"></div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-slate-400">BGM</span>
+                    <button id="bgm-btn" class="text-2xl text-slate-300 hover:text-white transition-colors">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
             </div>
-            <div id="question-number"></div>
-            <div class="question-container">
-                <h2 id="question-text"></h2>
-                <div id="options-grid" class="options-grid"></div>
+            <div class="bg-slate-800 p-6 rounded-xl mb-8 shadow-inner">
+                <p id="question-text" class="text-xl md:text-2xl font-semibold leading-relaxed"></p>
             </div>
-            <div id="explanation-area">
-                <h3 id="explanation-title"></h3>
-                <p id="explanation-text"></p>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 選択肢ボタンはここに動的に生成されます -->
             </div>
+             <div id="feedback" class="mt-6 text-center text-lg h-8"></div>
         </div>
 
-        <div id="result-screen">
-            <h2>クイズ終了！</h2>
-            <p id="score-text"></p>
-            <div class="result-table-container">
-                <table class="result-table">
+        <!-- 結果画面 -->
+        <div id="result-screen" class="w-full hidden">
+            <h2 class="text-3xl font-bold text-center mb-4">クイズ結果</h2>
+            <p id="score-text" class="text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-8"></p>
+            <p class="text-center text-slate-400 mb-10">お疲れ様でした！以下に全問の解説を示します。</p>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse result-table">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>問題文</th>
-                            <th>あなたの回答</th>
-                            <th>正解</th>
-                            <th>解説</th>
+                            <th class="p-4 bg-slate-700 rounded-tl-lg">問題</th>
+                            <th class="p-4 bg-slate-700">正解</th>
+                            <th class="p-4 bg-slate-700 rounded-tr-lg">解説</th>
                         </tr>
                     </thead>
-                    <tbody id="result-table-body">
+                    <tbody id="result-details" class="bg-slate-800">
+                        <!-- 結果の詳細はここに動的に生成されます -->
                     </tbody>
                 </table>
             </div>
-            <button id="retryBtn" onclick="location.reload()">もう一度挑戦する</button>
+
+            <div class="text-center mt-12">
+                <button id="restart-btn" class="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-300">
+                    もう一度挑戦する
+                </button>
+            </div>
         </div>
+
     </div>
 
-    <!-- Sound Effects -->
-    <audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
-    <audio id="start-sound" src="start.mp3" preload="auto"></audio>
-    <audio id="correct-sound" src="correct.mp3" preload="auto"></audio>
-    <audio id="wrong-sound" src="wrong.mp3" preload="auto"></audio>
-    <audio id="end-sound" src="end.mp3" preload="auto"></audio>
-
     <script>
+        // --- 音声ファイルの準備 ---
+        const bgm = new Audio('https://hiro01200120.github.io/my-site/bgm.mp3');
+        bgm.loop = true;
+        const correctSound = new Audio('https://hiro01200120.github.io/my-site/correct.mp3');
+        const wrongSound = new Audio('https://hiro01200120.github.io/my-site/wrong.mp3');
+        const startSound = new Audio('https://hiro01200120.github.io/my-site/start.mp3');
+        const endSound = new Audio('https://hiro01200120.github.io/my-site/end.mp3');
+
+        // --- クイズデータ ---
         const quizData = [
-            { question: '会社が「うまくいっているか」を明らかにする資料は何ですか？', options: ['事業計画書', '決算書', '組織図', '顧客リスト'], correct: 1, explanation: '決算書は、一言で言えば「会社がうまくいっているかモロバレ資料」のことです。具体的には、その会社が「今どれくらいの財産を持っているか」と「最近どれくらい稼いでいるか」の二つが書かれている資料であり、企業の実態が隠さずに丸裸になります。' },
-            { question: '決算書に含まれる4つの書類の中で、特に重要とされている2つの書類は何と何ですか？', options: ['貸借対照表と株主資本等変動計算書', '損益計算書とキャッシュフロー計算書', '貸借対照表と損益計算書', 'キャッシュフロー計算書と株主資本等変動計算書'], correct: 2, explanation: '決算書には「貸借対照表」「損益計算書」「キャッシュフロー計算書」「株主資本等変動計算書」という4つの書類が含まれていますが、この中で特に大事なのは貸借対照表と損益計算書の2つとされています。キャッシュフロー計算書もやや大事ですが、この2つが主要な書類となっています。' },
-            { question: '会社が「今どれくらいの財産を持っているか」がわかる資料は、次のうちどれですか？', options: ['損益計算書（PL）', '貸借対照表（BS）', 'キャッシュフロー計算書', '株主資本等変動計算書'], correct: 1, explanation: '会社が「今どれくらいの財産を持っているか」、つまり財務状況がわかる資料は貸借対照表（BS）資産と借金のバランスがわかる資料でもあり、英語では「バランスシート (BS)」と略されます。個人に例えるなら「貯金」や「借金」が具体的に何件あるか分かる資料だと言えます。' },
-            { question: '会社が「最近どれくらい稼いでいるか（儲かっているか）」がわかる資料は、次のうちどれですか？', options: ['損益計算書（PL）', '貸借対照表（BS）', 'キャッシュフロー計算書', '株主資本等変動計算書'], correct: 0, explanation: '会社が「最近どれくらい稼いでいるか（儲かっているか）」、つまり業績がわかる資料は損益計算書（PL）どれだけ利益を稼いだか、あるいは損をしたかがわかる資料であり、英語では「プロフィット・アンド・ロス・ステートメント (PL)」と略されます。個人に例えるなら「年収」にあたります。' },
-            { question: '貸借対照表において、「すぐに現金にできる資産」や「すぐに返済が必要な借金」を表す言葉は何ですか？', options: ['固定', '長期', '流動', '短期'], correct: 2, explanation: '貸借対照表では、資産と負債の両方に「流動」と「固定」の2種類があります。流動とは「すぐに」という意味合いを持ち、例えば流動資産は「すぐに現金にできる資産」（現金や売れる在庫など）、流動負債は「すぐに返さなければいけない借金」を指します。一方、「固定」は「すぐにではない」という意味合いで、すぐに現金化できない資産や、1年以内に返済しなくてもよい借金を表します。' },
-            { question: '以下の記述は、どの業界の貸借対照表の特徴をよく表していますか？ 「すぐには現金化できない固定資産の割合が非常に大きい。」', options: ['IT業界', '小売業界', '鉄道業界', 'サービス業界'], correct: 2, explanation: 'この記述は鉄道業界の貸借対照表の特徴をよく表しています。鉄道業界は、電車車両や線路といった、すぐに現金化できない「固定資産」を膨大に持っていることが、その財産の資料（貸借対照表）の固定資産の箇所に大きく反映されます。' },
-            { question: '中古品の売買を扱うメルカリとブックオフの貸借対照表を比較した際、メルカリの特徴は以下のどれですか？', options: ['ブックオフよりも固定資産の割合が圧倒的に少ない', 'ブックオフよりも流動資産の割合が圧倒的に少ない', 'ブックオフよりも負債の割合が圧倒的に高い', 'ブックオフよりも純資産の割合が圧倒的に低い'], correct: 0, explanation: 'メルカリとブックオフの貸借対照表を比較すると、メルカリの方が固定資産の割合が圧倒的に少ないという特徴があります。メルカリはIT系のビジネスであり、顧客同士の中古品のやり取りをウェブ上のプラットフォームでマッチングさせるビジネスモデルです。そのため、中古品を保管する倉庫や販売する店舗といった大きな固定資産を必要とせず、固定資産がほぼなしでビジネスを成立させられる点が特徴です。一方、ブックオフは実店舗を持つビジネスモデルであるため、メルカリと比較すると店舗などの固定資産が多くなります。' },
-            { question: '損益計算書において、商品を販売するためにかかった従業員の給料や広告費用などを指す費用は何ですか？', options: ['売上原価', '営業外費用', '特別損失', '販管費'], correct: 3, explanation: '損益計算書における費用は、大きく「売上原価」と「販管費（販売費及び一般管理費）」に分けられます。売上原価は「商品の原価」、つまり販売する商品の仕入れにかかった金額を指します。一方、販管費は、その商品を販売するためにかかった費用全般を指し、具体的には従業員の給料や広告費用などが含まれます。例えば、ラーメン屋の例では、麺や野菜の仕入れが売上原価、バイトの給料やチラシの制作費が販管費に該当します。' },
-            { question: 'セブン-イレブンと100円ショップのキャンドゥの損益計算書を比較すると、セブン-イレブンはキャンドゥよりも何が圧倒的に低いと解説されていますか？', options: ['売上高', '販管費', '営業利益', '売上原価'], correct: 3, explanation: 'セブン-イレブンとキャンドゥの損益計算書を比較すると、セブン-イレブンの売上原価が圧倒的に低いと解説されています。これは、セブン-イレブンの**メインの収益源がフランチャイズ収入（約9割以上）**という独特のビジネスモデルに起因します。セブン-イレブン本部が商品を仕入れて販売しているわけではなく、各店舗の店長が商品を仕入れているため、本部（セブン-イレブン）の損益計算書には、商品の仕入れにかかる「売上原価」がほとんど計上されないという特徴があるのです。' },
-            { question: '企業の役員の年収や、出世ルート、転職の面接でアピールすべきポイントなど、より「生々しい情報」を読み解くことができる、年に1回発表される詳細な決算書に付随する補足情報は、次のうちどれですか？', options: ['会社四季報', '有価証券報告書', '事業報告書', '監査報告書'], correct: 1, explanation: '企業の役員の年収や出世ルート、転職の面接でアピールすべきポイントといった「生々しい情報」を読み解くことができるのは、企業が年に1回発表する「有価証券報告書」嘘なしのガチンコで書かれているため、信頼性が高いとされています。' }
+            {
+                question: "会社が「うまくいっているか」を明らかにする資料は何ですか？",
+                options: ["a) 事業計画書", "b) 決算書", "c) 組織図", "d) 顧客リスト"],
+                answer: "b) 決算書",
+                explanation: "決算書は、一言で言えば「会社がうまくいっているかモロバレ資料」のことです。具体的には、その会社が「今どれくらいの財産を持っているか」と「最近どれくらい稼いでいるか」の二つが書かれている資料であり、企業の実態が隠さずに丸裸になります。"
+            },
+            {
+                question: "決算書に含まれる4つの書類の中で、特に重要とされている2つの書類は何と何ですか？",
+                options: ["a) 貸借対照表と株主資本等変動計算書", "b) 損益計算書とキャッシュフロー計算書", "c) 貸借対照表と損益計算書", "d) キャッシュフロー計算書と株主資本等変動計算書"],
+                answer: "c) 貸借対照表と損益計算書",
+                explanation: "決算書には「貸借対照表」「損益計算書」「キャッシュフロー計算書」「株主資本等変動計算書」という4つの書類が含まれていますが、この中で特に大事なのは貸借対照表と損益計算書の2つとされています。キャッシュフロー計算書もやや大事ですが、この2つが主要な書類となっています。"
+            },
+            {
+                question: "会社が「今どれくらいの財産を持っているか」がわかる資料は、次のうちどれですか？",
+                options: ["a) 損益計算書（PL）", "b) 貸借対照表（BS）", "c) キャッシュフロー計算書", "d) 株主資本等変動計算書"],
+                answer: "b) 貸借対照表（BS）",
+                explanation: "会社が「今どれくらいの財産を持っているか」、つまり財務状況がわかる資料は貸借対照表（BS）です。資産と借金のバランスがわかる資料でもあり、英語では「バランスシート (BS)」と略されます。個人に例えるなら「貯金」や「借金」が具体的に何件あるか分かる資料だと言えます。"
+            },
+            {
+                question: "会社が「最近どれくらい稼いでいるか（儲かっているか）」がわかる資料は、次のうちどれですか？",
+                options: ["a) 損益計算書（PL）", "b) 貸借対照表（BS）", "c) キャッシュフロー計算書", "d) 株主資本等変動計算書"],
+                answer: "a) 損益計算書（PL）",
+                explanation: "会社が「最近どれくらい稼いでいるか（儲かっているか）」、つまり業績がわかる資料は損益計算書（PL）です。どれだけ利益を稼いだか、あるいは損をしたかがわかる資料であり、英語では「プロフィット・アンド・ロス・ステートメント (PL)」と略されます。個人に例えるなら「年収」にあたります。"
+            },
+            {
+                question: "貸借対照表において、「すぐに現金にできる資産」や「すぐに返済が必要な借金」を表す言葉は何ですか？",
+                options: ["a) 固定", "b) 長期", "c) 流動", "d) 短期"],
+                answer: "c) 流動",
+                explanation: "貸借対照表では、資産と負債の両方に「流動」と「固定」の2種類があります。流動とは「すぐに」という意味合いを持ち、例えば流動資産は「すぐに現金にできる資産」（現金や売れる在庫など）、流動負債は「すぐに返さなければいけない借金」を指します。一方、「固定」は「すぐにではない」という意味合いで、すぐに現金化できない資産や、1年以内に返済しなくてもよい借金を表します。"
+            },
+            {
+                question: "以下の記述は、どの業界の貸借対照表の特徴をよく表していますか？ 「すぐには現金化できない固定資産の割合が非常に大きい。」",
+                options: ["a) IT業界", "b) 小売業界", "c) 鉄道業界", "d) サービス業界"],
+                answer: "c) 鉄道業界",
+                explanation: "この記述は鉄道業界の貸借対照表の特徴をよく表しています。鉄道業界は、電車車両や線路といった、すぐに現金化できない「固定資産」を膨大に持っていることが、その財産の資料（貸借対照表）の固定資産の箇所に大きく反映されます。"
+            },
+            {
+                question: "中古品の売買を扱うメルカリとブックオフの貸借対照表を比較した際、メルカリの特徴は以下のどれですか？",
+                options: ["a) ブックオフよりも固定資産の割合が圧倒的に少ない", "b) ブックオフよりも流動資産の割合が圧倒的に少ない", "c) ブックオフよりも負債の割合が圧倒的に高い", "d) ブックオフよりも純資産の割合が圧倒的に低い"],
+                answer: "a) ブックオフよりも固定資産の割合が圧倒的に少ない",
+                explanation: "メルカリはIT系のビジネスであり、顧客同士の中古品のやり取りをウェブ上のプラットフォームでマッチングさせるビジネスモデルです。そのため、中古品を保管する倉庫や販売する店舗といった大きな固定資産を必要とせず、固定資産がほぼなしでビジネスを成立させられる点が特徴です。一方、ブックオフは実店舗を持つため固定資産が多くなります。"
+            },
+            {
+                question: "損益計算書において、商品を販売するためにかかった従業員の給料や広告費用などを指す費用は何ですか？",
+                options: ["a) 売上原価", "b) 営業外費用", "c) 特別損失", "d) 販管費"],
+                answer: "d) 販管費",
+                explanation: "損益計算書における費用は、大きく「売上原価」と「販管費（販売費及び一般管理費）」に分けられます。売上原価は「商品の原価」を指し、販管費はその商品を販売するためにかかった費用全般（従業員の給料や広告費用など）を指します。"
+            },
+            {
+                question: "セブン-イレブンと100円ショップのキャンドゥの損益計算書を比較すると、セブン-イレブンはキャンドゥよりも何が圧倒的に低いと解説されていますか？",
+                options: ["a) 売上高", "b) 販管費", "c) 営業利益", "d) 売上原価"],
+                answer: "d) 売上原価",
+                explanation: "セブン-イレブンのメイン収益源はフランチャイズ収入のため、本部が商品を仕入れて販売しているわけではありません。そのため、損益計算書には商品の仕入れにかかる「売上原価」がほとんど計上されないという特徴があります。"
+            },
+            {
+                question: "企業の役員の年収や出世ルートなど、より「生々しい情報」を読み解くことができる、年に1回発表される補足情報は次のうちどれですか？",
+                options: ["a) 会社四季報", "b) 有価証券報告書", "c) 事業報告書", "d) 監査報告書"],
+                answer: "b) 有価証券報告書",
+                explanation: "企業の役員の年収や出世ルートといった「生々しい情報」を読み解くことができるのは、企業が年に1回発表する「有価証券報告書」です。嘘なしのガチンコで書かれているため、信頼性が高いとされています。"
+            }
         ];
 
-        let currentQuestionIndex = 0;
-        let userAnswers = [];
-        let score = 0;
-
-        const startBtn = document.getElementById('startBtn');
+        // --- DOM要素の取得 ---
         const startScreen = document.getElementById('start-screen');
         const quizScreen = document.getElementById('quiz-screen');
         const resultScreen = document.getElementById('result-screen');
-        
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const bgmBtn = document.getElementById('bgm-btn');
+        const questionCounter = document.getElementById('question-counter');
         const questionText = document.getElementById('question-text');
-        const optionsGrid = document.getElementById('options-grid');
-        const explanationArea = document.getElementById('explanation-area');
-        const explanationTitle = document.getElementById('explanation-title');
-        const explanationText = document.getElementById('explanation-text');
-        const progressBar = document.getElementById('progress-bar');
-        
-        const bgm = document.getElementById('bgm');
-        const sounds = {
-            start: document.getElementById('start-sound'),
-            correct: document.getElementById('correct-sound'),
-            wrong: document.getElementById('wrong-sound'),
-            end: document.getElementById('end-sound')
-        };
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const scoreText = document.getElementById('score-text');
+        const resultDetails = document.getElementById('result-details');
 
+        // --- 変数定義 ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isBgmPlaying = false;
+
+        // --- イベントリスナー ---
         startBtn.addEventListener('click', startQuiz);
+        restartBtn.addEventListener('click', restartQuiz);
+        bgmBtn.addEventListener('click', toggleBgm);
 
-        function playSound(soundName) {
-            if (sounds[soundName]) {
-                sounds[soundName].currentTime = 0;
-                sounds[soundName].play().catch(e => console.log("Audio play failed: ", e));
-            }
-        }
+        // --- 関数定義 ---
 
+        /**
+         * クイズを開始する関数
+         */
         function startQuiz() {
-            playSound('start');
-            bgm.volume = 0.1;
-            bgm.play().catch(e => console.log("BGM play failed: ", e));
-            
-            startScreen.style.display = 'none';
-            quizScreen.style.display = 'block';
-            
+            startSound.play();
+            if (!isBgmPlaying) {
+                bgm.play().catch(e => console.error("BGMの再生に失敗しました:", e));
+                isBgmPlaying = true;
+                updateBgmIcon();
+            }
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
             displayQuestion();
         }
 
+        /**
+         * 問題と選択肢を表示する関数
+         */
         function displayQuestion() {
-            explanationArea.style.display = 'none';
+            feedback.textContent = '';
             const currentQuestion = quizData[currentQuestionIndex];
+            questionCounter.textContent = `第 ${currentQuestionIndex + 1} 問 / ${quizData.length} 問`;
+            questionText.textContent = currentQuestion.question;
+            optionsContainer.innerHTML = '';
             
-            progressBar.style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
-            
-            questionText.innerHTML = `Q${currentQuestionIndex + 1}. ${currentQuestion.question}`;
-            optionsGrid.innerHTML = '';
-            
-            const prefixes = ['A', 'B', 'C', 'D'];
-            currentQuestion.options.forEach((option, index) => {
+            currentQuestion.options.forEach(option => {
                 const button = document.createElement('button');
-                button.className = 'option-btn';
-                button.innerHTML = `<span class="option-prefix">${prefixes[index]}</span> ${option}`;
-                button.addEventListener('click', () => selectAnswer(index, button));
-                optionsGrid.appendChild(button);
+                button.textContent = option;
+                button.classList.add('option-btn', 'w-full', 'p-4', 'rounded-lg', 'font-semibold', 'bg-slate-700', 'hover:bg-slate-600', 'text-left', 'text-lg');
+                button.addEventListener('click', () => checkAnswer(option, button));
+                optionsContainer.appendChild(button);
             });
         }
 
-        function selectAnswer(selectedIndex, selectedButton) {
+        /**
+         * 回答をチェックする関数
+         * @param {string} selectedOption - ユーザーが選択した選択肢
+         * @param {HTMLElement} buttonElement - クリックされたボタン要素
+         */
+        function checkAnswer(selectedOption, buttonElement) {
             const currentQuestion = quizData[currentQuestionIndex];
-            const isCorrect = selectedIndex === currentQuestion.correct;
+            const isCorrect = selectedOption === currentQuestion.answer;
             
-            userAnswers[currentQuestionIndex] = selectedIndex;
-
-            if (isCorrect) {
-                playSound('correct');
-                selectedButton.classList.add('correct');
-                score++;
-            } else {
-                playSound('wrong');
-                selectedButton.classList.add('wrong');
-            }
-
-            Array.from(optionsGrid.children).forEach((btn, index) => {
+            // 全てのボタンを無効化
+            Array.from(optionsContainer.children).forEach(btn => {
                 btn.disabled = true;
-                if (index === currentQuestion.correct) {
+                // 正解の選択肢をハイライト
+                if (btn.textContent === currentQuestion.answer) {
                     btn.classList.add('correct');
                 }
             });
 
-            explanationTitle.textContent = isCorrect ? '正解！' : '残念！';
-            explanationText.textContent = currentQuestion.explanation;
-            explanationArea.style.display = 'block';
+            if (isCorrect) {
+                correctSound.play();
+                score++;
+                feedback.textContent = '正解！';
+                feedback.classList.add('text-green-400');
+                feedback.classList.remove('text-red-400');
+                // 選択したボタンはすでにcorrectクラスが適用されている
+            } else {
+                wrongSound.play();
+                buttonElement.classList.add('wrong');
+                feedback.textContent = '不正解…';
+                feedback.classList.add('text-red-400');
+                feedback.classList.remove('text-green-400');
+            }
 
             setTimeout(() => {
                 currentQuestionIndex++;
@@ -414,42 +297,74 @@
                 } else {
                     showResults();
                 }
-            }, 3500);
+            }, 2000); // 2秒後に次の問題へ
         }
 
+        /**
+         * 結果を表示する関数
+         */
         function showResults() {
             bgm.pause();
-            playSound('end');
+            bgm.currentTime = 0;
+            isBgmPlaying = false;
+            updateBgmIcon();
+            endSound.play();
 
-            quizScreen.style.display = 'none';
-            resultScreen.style.display = 'block';
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
 
-            const scorePercentage = Math.round((score / quizData.length) * 100);
-            document.getElementById('score-text').textContent = `あなたの正解率は ${score} / ${quizData.length} (${scorePercentage}%) でした。`;
+            scoreText.textContent = `${score} / ${quizData.length} 問正解`;
             
-            const tableBody = document.getElementById('result-table-body');
-            tableBody.innerHTML = '';
-
-            quizData.forEach((q, index) => {
-                const userAnswerIndex = userAnswers[index];
-                const isCorrect = userAnswerIndex === q.correct;
-
-                const row = document.createElement('tr');
-                row.className = isCorrect ? 'correct-answer-row' : 'wrong-answer-row';
-                
-                const userAnswerText = userAnswerIndex !== undefined ? q.options[userAnswerIndex] : '（無回答）';
-                const userAnswerClass = isCorrect ? 'correct' : 'wrong';
-
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${q.question}</td>
-                    <td class="user-answer ${userAnswerClass}">${userAnswerText}</td>
-                    <td>${q.options[q.correct]}</td>
-                    <td>${q.explanation}</td>
+            resultDetails.innerHTML = '';
+            quizData.forEach((quiz, index) => {
+                const row = `
+                    <tr class="border-b border-slate-700">
+                        <td class="p-4 align-top">${index + 1}. ${quiz.question}</td>
+                        <td class="p-4 align-top font-bold text-teal-400">${quiz.answer}</td>
+                        <td class="p-4 align-top">${quiz.explanation}</td>
+                    </tr>
                 `;
-                tableBody.appendChild(row);
+                resultDetails.innerHTML += row;
             });
         }
+
+        /**
+         * クイズをリスタートする関数
+         */
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        }
+
+        /**
+         * BGMの再生/停止を切り替える関数
+         */
+        function toggleBgm() {
+            if (isBgmPlaying) {
+                bgm.pause();
+            } else {
+                bgm.play().catch(e => console.error("BGMの再生に失敗しました:", e));
+            }
+            isBgmPlaying = !isBgmPlaying;
+            updateBgmIcon();
+        }
+        
+        /**
+         * BGMアイコンを更新する関数
+         */
+        function updateBgmIcon() {
+            const icon = bgmBtn.querySelector('i');
+            if (isBgmPlaying) {
+                icon.classList.remove('fa-volume-mute');
+                icon.classList.add('fa-volume-up');
+            } else {
+                icon.classList.remove('fa-volume-up');
+                icon.classList.add('fa-volume-mute');
+            }
+        }
+
     </script>
 </body>
 </html>
