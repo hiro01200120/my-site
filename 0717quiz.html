@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>財務三表知識クイズ</title>
+    <title>財務三表知識クイズ(経営企画 松田作成)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,14 +37,14 @@
     <audio id="start-audio" src="https://hiro01200120.github.io/my-site/start.mp3"></audio>
     <audio id="end-audio" src="https://hiro01200120.github.io/my-site/end.mp3"></audio>
 
-    <div id="quiz-container" class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 md:p-10 text-center transition-all duration-500">
+    <div id="quiz-container" class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl p-6 md:p-10 text-center transition-all duration-500">
 
         <!-- スタート画面 -->
         <div id="start-screen" class="fade-in">
             <img src="https://hiro01200120.github.io/my-site/rogo.jpg" alt="ロゴ" class="mx-auto mb-6 rounded-lg max-w-xs h-auto shadow-md" onerror="this.style.display='none';">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-700 mb-4">財務三表知識クイズ</h1>
-            <p class="text-gray-600 mb-8">あなたの財務知識を試してみよう！</p>
-            <button id="start-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <p class="text-gray-600 mb-8">先月の部会の復習をしてみよう！</p>
+            <button id="start-button" class="w-full max-w-sm mx-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 クイズを始める
             </button>
         </div>
@@ -62,7 +62,7 @@
                 <p id="feedback-text" class="text-xl font-bold mb-2"></p>
                 <p id="explanation" class="text-gray-700"></p>
             </div>
-            <button id="next-button" class="hidden w-full mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <button id="next-button" class="hidden w-full max-w-sm mx-auto mt-6 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-lg hover:shadow-xl transition-all duration-300">
                 次の問題へ
             </button>
         </div>
@@ -75,24 +75,24 @@
             
             <div class="text-left my-8">
                 <h3 class="text-2xl font-bold mb-4 text-center">解答・解説一覧</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-200">
+                <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                    <table class="w-full min-w-full text-sm text-left text-gray-600 table-fixed">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                             <tr>
-                                <th scope="col" class="px-4 py-3">問題</th>
-                                <th scope="col" class="px-4 py-3">あなたの回答</th>
-                                <th scope="col" class="px-4 py-3">正解</th>
-                                <th scope="col" class="px-4 py-3">解説</th>
+                                <th scope="col" class="px-6 py-3 w-[5%]">#</th>
+                                <th scope="col" class="px-6 py-3 w-[35%]">問題</th>
+                                <th scope="col" class="px-6 py-3 w-[25%]">正解</th>
+                                <th scope="col" class="px-6 py-3 w-[35%]">解説</th>
                             </tr>
                         </thead>
-                        <tbody id="summary-table-body">
+                        <tbody id="summary-table-body" class="divide-y divide-gray-200">
                             <!-- 結果一覧はJSで生成 -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <button id="restart-button" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <button id="restart-button" class="w-full max-w-sm mx-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-lg hover:shadow-xl transition-all duration-300">
                 もう一度挑戦する
             </button>
         </div>
@@ -105,58 +105,58 @@
                 question: "財務三表と呼ばれる3つの書類で「損益計算書」以外の2つは何ですか？",
                 options: { a: "事業計画書、組織図", b: "貸借対照表、キャッシュフロー計算書", c: "決算書、財務諸表", d: "事業報告書、貸借対照表" },
                 answer: "b",
-                explanation: "財務三表とは、決算書の書類の中でも特に重要な「損益計算書（P/L）」「貸借対照表（B/S）」「キャッシュフロー計算書（C/S）」の3つの書類の総称です。"
+                explanation: "財務三表とは、決算書の書類の中でも特に重要な「損益計算書（P/L）」「貸借対照表（B/S）」「キャッシュフロー計算書（C/F）」の3つの書類の総称です。"
             },
             {
-                question: "多くの経営者が財務三表を軽視している現状がありますが、本来財務三表は何のためにあると強調されていますか？",
+                question: "本来財務三表は何のためにあると強調されていましたか？",
                 options: { a: "税務申告のため", b: "提出用の書類として", c: "経営判断を行なうヒントを得るため", d: "配当額を決定するため" },
                 answer: "c",
-                explanation: "多くの経営者は財務三表を「提出用の書類」程度に捉え軽視している現状がありますが、これは非常に勿体ないことです。財務三表には経営判断を考える「強力なヒント」が満載であり、経営に活用するためのものだと強調されています。"
+                explanation: "多くの経営者は財務三表を「提出用の書類」程度に捉え軽視している場合がありますが、これは非常に勿体ないことです。財務三表には経営判断を考える「強力なヒント」が満載であり、経営に活用するためのものだと強調されています。"
             },
             {
-                question: "損益計算書に登場する5つの利益のうち、「本業での利益」を示すものは何ですか？",
-                options: { a: "売上総利益", b: "営業利益", c: "経常利益", d: "当期純利益" },
-                answer: "b",
-                explanation: "損益計算書には「売上総利益」「営業利益」「経常利益」「税引前利益」「当期純利益」の5つの利益が登場します。このうち、営業利益は「本業での利益」を示します。生協では事業剰余金と呼ばれるものです。"
+                question: "供給収入 − 供給原価 は次のうち何を表しますか？",
+                options: { a: "粗利益(GP)", b: "事業剰余", c: "経常剰余", d: "当期剰余金" },
+                answer: "a",
+                explanation: "供給収入 − 供給原価＝粗利益です。ここから人件費や物件費を差し引くと事業剰余になります。"
             },
             {
-                question: "会社が「1年間の活動を通していくら儲かったのか？」を示す「会社の1年間の成績表」ともいわれる書類は何ですか？",
-                options: { a: "貸借対照表（B/S）", b: "キャッシュフロー計算書（C/S）", c: "損益計算書（P/L）", d: "経営計画書" },
+                question: "1年間の活動を通していくら儲かったのか？を示す「成績表」ともいわれる書類は何ですか？",
+                options: { a: "貸借対照表（B/S）", b: "キャッシュフロー計算書（C/F）", c: "損益計算書（P/L）", d: "経営計画書" },
                 answer: "c",
-                explanation: "損益計算書（P/L）は、企業が1年間の活動を通していくら儲かったのかを記録した書類であり、「会社の1年間の成績表」とも呼ばれます。"
+                explanation: "損益計算書（P/L）は、1年間の活動を通していくら儲かったのかを記録した書類であり「1年間の成績表」とも呼ばれます。"
             },
             {
-                question: "財務三表を経営に本当に活用するための鍵となる視点の転換とは何ですか？",
-                options: { a: "法律の専門家に分析を依頼する", b: "財務三表を自社の強みや弱みを把握し、次の戦略を考えるための分析資料と捉える", c: "財務三表の数字を競合他社と比較する", d: "財務三表の作成頻度を減らす" },
+                question: "財務三表を経営に活用するための鍵となる視点は何ですか？",
+                options: { a: "法律の専門家に分析を依頼する", b: "財務三表を自社の強みや弱みを把握、次の戦略を考えるための分析資料と捉える", c: "財務三表の数字を積極的に公開する", d: "財務三表の作成頻度を減らす" },
                 answer: "b",
-                explanation: "財務三表を経営に活用するためには、「決算や銀行提出用の書類」と捉えるのをやめ、自社の強みや弱みを把握し、次の経営戦略を考えるための「分析資料」として捉える視点の転換が鍵となります。数字の裏にあるストーリーを読むことが重要です。"
+                explanation: "財務三表を経営に活用するためには「決算や銀行提出用の書類」と捉えるのをやめ、自社の強みや弱みを把握し、次の経営戦略を考えるための「分析資料」として捉える視点の転換が鍵となります。数字の裏にあるストーリーを読むことが重要です。"
             },
             {
-                question: "損益計算書で見るべきポイントの一つである「損益分岐点売上高」が示すものは何ですか？",
-                options: { a: "目標とする売上高", b: "損失を出さないために死守すべき売上高", c: "過去最高の売上高", d: "競合他社の平均売上高" },
+                question: "「損益分岐点売上高」が示すものは何ですか？",
+                options: { a: "会社が発展するための最終目標", b: "損失を出さないために最低限、死守すべき売上高", c: "過去最高の売上高", d: "競合他社の平均売上高" },
                 answer: "b",
-                explanation: "損益分岐点売上高とは、売上高と費用が収支トントンになり、利益も損失も出ない（プラマイゼロ）の売上高です。これは、損失を出さないために「絶対死守すべき売上高」がいくらなのかを示してくれます。"
+                explanation: "損益分岐点売上高とは、売上高と費用が収支トントンになり、利益も損失も出ない（プラマイゼロ）の売上高です。これは、損失を出さないために「最低限死守すべき売上高」がいくらなのかを示してくれます。"
             },
             {
-                question: "全業種の平均で「およそ5％」が目安とされている損益計算書の指標は何ですか？",
-                options: { a: "売上高増加率", b: "売上総利益率", c: "売上高経常利益率", d: "営業利益率" },
+                question: "貸借対照表の「自己資本比率」で、「優良企業」と評価される目安のパーセンテージは何％以上ですか？",
+                options: { a: "10%以上", b: "30%以上", c: "50%以上", d: "100%" },
                 answer: "c",
-                explanation: "売上高経常利益率は、「効率よく利益を残せているのか？」がわかる指標であり、全業種の平均が「およそ5％」とされています。"
+                explanation: "自己資本比率は中長期的な資金の安定性を示します。「50%以上」であれば「優良企業」と評価され、理想的な状態とされています。"
             },
             {
-                question: "損益計算書では利益が出ているのに、手元に現金がなく資金ショートして倒産してしまう現象を何と呼びますか？",
+                question: "利益が出ているのに、手元に現金がなく資金ショートして倒産してしまう現象を何と呼びますか？",
                 options: { a: "連鎖倒産", b: "黒字倒産", c: "不渡り倒産", d: "不良債権倒産" },
                 answer: "b",
                 explanation: "損益計算書で利益が出ていても、実際に入金されるよりも前に資金が不足して倒産することを「黒字倒産」と呼びます。キャッシュフロー計算書は、この手元の現金を把握するために重要な資料です。"
             },
             {
                 question: "会社の財政状態、すなわち「倒産しない会社なのか？」「安全な会社なのか？」がわかる書類は何ですか？",
-                options: { a: "損益計算書（P/L）", b: "キャッシュフロー計算書（C/S）", c: "貸借対照表（B/S）", d: "損益分岐点計算書" },
+                options: { a: "損益計算書（P/L）", b: "キャッシュフロー計算書（C/F）", c: "貸借対照表（B/S）", d: "損益分岐点計算書" },
                 answer: "c",
                 explanation: "貸借対照表（B/S）は、会社の財政状態が一目瞭然となる「会社が持っている資産と、抱えている負債の一覧表」であり、倒産しない安全な会社なのかを判断するのに役立ちます。"
             },
             {
-                question: "貸借対照表で見るべきポイントの一つである「手元流動性」は、具体的に何を示す指標ですか？",
+                question: "「手元流動性」は、具体的に何を示す指標ですか？",
                 options: { a: "会社の借入金の総額", b: "投資に回せる資金の量", c: "すぐに使えるお金が会社にどれだけあるか", d: "将来的な売上予測" },
                 answer: "c",
                 explanation: "手元流動性は、超短期的な資金安定性を測る指標であり、「すぐに使えるお金が、会社にどれだけあるか」を示します。"
@@ -344,19 +344,15 @@
             quizData.forEach((quiz, index) => {
                 const userAnswer = userAnswers[index];
                 const row = document.createElement('tr');
-                row.classList.add('bg-white', 'border-b');
-
-                const isCorrect = userAnswer.selected === userAnswer.correct;
+                
+                // 行の背景色を交互に設定
+                row.classList.add(index % 2 === 0 ? 'bg-white' : 'bg-gray-50');
 
                 row.innerHTML = `
-                    <td class="px-4 py-3 font-medium text-gray-900">
-                        <span class="font-bold">Q${index + 1}.</span> ${quiz.question.substring(0, 20)}...
-                    </td>
-                    <td class="px-4 py-3 ${isCorrect ? 'text-green-600' : 'text-red-600'}">
-                        ${isCorrect ? '✔' : '✖'} ${userAnswer.selectedText}
-                    </td>
-                    <td class="px-4 py-3 text-green-600">${userAnswer.correctText}</td>
-                    <td class="px-4 py-3">${quiz.explanation}</td>
+                    <td class="px-6 py-4 align-top font-bold text-gray-800">Q${index + 1}</td>
+                    <td class="px-6 py-4 align-top font-semibold text-gray-800">${quiz.question}</td>
+                    <td class="px-6 py-4 align-top text-gray-800">${userAnswer.correctText}</td>
+                    <td class="px-6 py-4 align-top text-gray-600">${quiz.explanation}</td>
                 `;
                 summaryTableBody.appendChild(row);
             });
