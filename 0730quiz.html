@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エフコープBCP理解度クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基本フォント設定 */
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+        }
+
+        /* カスタムスタイル */
+        .quiz-container {
+            max-width: 800px;
+            width: 95%;
+        }
+
+        /* グラデーション背景 */
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        /* ボタンのスタイル */
+        .btn {
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 選択肢ボタンのスタイル */
+        .option-btn.correct {
+            background-color: #28a745 !important; /* 正解の色 */
+            color: white !important;
+            border-color: #28a745 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #dc3545 !important; /* 不正解の色 */
+            color: white !important;
+            border-color: #dc3545 !important;
+        }
+        
+        /* フィードバックモーダルのスタイル */
+        .feedback-modal {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+
+    <!-- 音声ファイル定義 -->
+    <audio id="bgm-audio" src="https://hiro01200120.github.io/my-site/bgm.mp3" loop preload="auto"></audio>
+    <audio id="correct-audio" src="https://hiro01200120.github.io/my-site/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-audio" src="https://hiro01200120.github.io/my-site/wrong.mp3" preload="auto"></audio>
+    <audio id="start-audio" src="https://hiro01200120.github.io/my-site/start.mp3" preload="auto"></audio>
+    <audio id="end-audio" src="https://hiro01200120.github.io/my-site/end.mp3" preload="auto"></audio>
+
+    <div id="quiz-container" class="quiz-container bg-white rounded-2xl shadow-2xl p-6 md:p-10 text-center">
+
+        <!-- スタート画面 -->
+        <div id="start-screen">
+            <img src="https://hiro01200120.github.io/my-site/rogo.jpg" alt="エフコープ ロゴ" class="mx-auto mb-6 w-full max-w-xs h-auto rounded-lg">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">エフコープBCP理解度クイズ</h1>
+            <p class="text-gray-600 mb-8">事業継続計画（BCP）についての理解度を確認しましょう！</p>
+            <button id="start-btn" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg">
+                クイズを始める
+            </button>
+        </div>
+
+        <!-- クイズ画面 -->
+        <div id="quiz-screen" class="hidden">
+            <!-- 進捗バー -->
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+            <p id="question-counter" class="text-lg font-bold text-gray-700 mb-4"></p>
+            <p id="question" class="text-xl md:text-2xl font-semibold text-gray-800 mb-8 min-h-[100px] flex items-center justify-center"></p>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 選択肢はJSで生成 -->
+            </div>
+        </div>
+        
+        <!-- フィードバックモーダル -->
+        <div id="feedback-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full text-center feedback-modal">
+                <h2 id="feedback-title" class="text-3xl font-bold mb-4"></h2>
+                <p id="feedback-explanation" class="text-gray-700 mb-6"></p>
+                <button id="next-btn" class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full">次へ</button>
+            </div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="result-screen" class="hidden">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">クイズ終了！</h2>
+            <p id="score" class="text-2xl text-blue-600 font-semibold mb-6"></p>
+            
+            <h3 class="text-2xl font-bold text-gray-800 mt-8 mb-4 border-b-2 border-blue-200 pb-2">回答と解説</h3>
+            <div class="overflow-x-auto">
+                <table id="result-table" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-blue-100">
+                            <th class="p-3 font-bold text-gray-700 border-b">問題</th>
+                            <th class="p-3 font-bold text-gray-700 border-b">あなたの回答</th>
+                            <th class="p-3 font-bold text-gray-700 border-b">正解</th>
+                            <th class="p-3 font-bold text-gray-700 border-b">解説</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-table-body">
+                        <!-- 結果はJSで生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button id="retry-btn" class="btn mt-8 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg">
+                もう一度挑戦する
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- クイズデータ ---
+        const quizData = [
+            {
+                question: "エフコープの事業継続計画（BCP）の目的は？",
+                options: ["利益の最大化", "迅速な情報公開", "事業を中断させずに、または極力早期に再開", "設備の完全復旧"],
+                answer: "事業を中断させずに、または極力早期に再開",
+                explanation: "エフコープの計画では、大規模災害が発生した場合でも、事業を中断させずに、または中断したとしても極力早期に再開し、組合員の暮らしと地域の復旧・維持に貢献することにあります。"
+            },
+            {
+                question: "エフコープが大規模災害として最も警戒し、具体的に想定しているのはどのような災害ですか？",
+                options: ["大規模火災とガス漏れ", "震度5強以上の地震と津波", "大雪による交通麻痺と停電", "新型感染症によるパンデミック"],
+                answer: "震度5強以上の地震と津波",
+                explanation: "エフコープが主に警戒しているのは「震度5強以上の地震、それとそれに伴う津波」であると具体的に想定されています。"
+            },
+            {
+                question: "福岡に直接の揺れが少なくても広範囲に甚大な被害が出て、エフコープへの商品供給に大きな影響が出る可能性があると想定されている具体的な地震は何ですか？",
+                options: ["熊本地震", "警固断層の地震", "東海地震", "南海トラフ地震"],
+                answer: "南海トラフ地震",
+                explanation: "「今後30年以内に70%から80%の確率で発生するって言われている南海トラフ地震」が挙げられており、関東から九州までの広い範囲に甚大な被害が出ると、物流サプライチェーンが止まり、福岡自体は無事でも商品が入ってこなくなるリスクがあると説明されています。"
+            },
+            {
+                question: "大規模災害時にエフコープが「最優先で維持あるいは復旧させる」としている事業に該当しないものはどれですか？",
+                options: ["班・個配事業", "夕食宅配", "店舗", "福利厚生"],
+                answer: "福利厚生",
+                explanation: "「班・個配、それから夕食、あと店舗、そして福祉事業」が組合員さんの生活に不可欠なサービスとして最優先で維持または復旧させると明確に記載されています。"
+            },
+            {
+                question: "震度5強以上の地震発生時、安否確認は、まずどのように行われることになっていますか？",
+                options: ["上長からの個別連絡", "安否確認システムからのメール", "業務用の携帯電話での一斉連絡", "災害掲示板への書き込み"],
+                answer: "安否確認システムからのメール",
+                explanation: "震度5強以上の地震が発生した場合、まず「安否確認システムから自動でメールが送られてそれに返信」することになっていると述べられています。"
+            },
+            {
+                question: "災害時に通常の携帯電話ネットワークが繋がりにくい状況に備え、エフコープが導入している業務用の無線システムは何ですか？",
+                options: ["CB無線", "MCA無線", "アマチュア無線", "デジタル簡易無線"],
+                answer: "MCA無線",
+                explanation: "電話が繋がりにくくなることへの対策として、「MCA無線っていうあの業務用の無線も導入してるんですよ」と述べられています。これは普通の携帯電話のネットワークとは別で、災害時でも比較的繋がりやすいとされています。"
+            },
+            {
+                question: "震度5強以上の地震が発生した場合、エフコープの災害対策本部の本部長は自動的に誰が務めることになっていますか？",
+                options: ["理事長", "専務理事", "各事業所の所長", "広報担当部長"],
+                answer: "専務理事",
+                explanation: "「震度5強以上だと専務理事の方を本部長とする対策本部っていうのがもう自動的に立ち上がる仕組みなんです」と記載されています。"
+            },
+            {
+                question: "地域への貢献として、行政からの物資支援要請があった場合、エフコープは基本的にどの組織を通じて対応することになっていますか？",
+                options: ["日本生協連", "福岡県生活協同組合連合会", "個別自治体から直接", "他の民間団体と連携して"],
+                answer: "福岡県生活協同組合連合会",
+                explanation: "行政からの物資支援要請があった際に「基本的には福岡県内の生協をまとめている県連を通じて対応するということになってます」と説明されています。"
+            },
+            {
+                question: "エフコープの本部の新しい建物における停電対策として、太陽光発電と蓄電池を導入し、何時間の電源確保を目指していますか？",
+                options: ["24時間", "48時間", "72時間", "96時間"],
+                answer: "72時間",
+                explanation: "新しい本部建物では太陽光発電と蓄電池を導入することで、「72時間、つまり丸3日間は電源を確保することを目指してるそうです」と述べられています。"
+            },
+            {
+                question: "エフコープが組合員を含む個人レベルでの「普段からの備え」として呼びかけていることには、家具の転倒防止の他に何がありますか？",
+                options: ["家族全員での海外旅行計画", "最低3日分の備蓄", "高額な災害保険への加入", "週に一度の避難訓練への参加"],
+                answer: "最低3日分の備蓄",
+                explanation: "「私たち個人レベルでも家具の転倒とか最低3日分の備蓄これを呼びかけてますね」と記載されています。"
+            }
+        ];
+
+        // --- DOM要素 ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const startBtn = document.getElementById('start-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const questionCounterElement = document.getElementById('question-counter');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const feedbackModal = document.getElementById('feedback-modal');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+
+        const scoreElement = document.getElementById('score');
+        const resultTableBody = document.getElementById('result-table-body');
+        
+        // --- 音声要素 ---
+        const bgmAudio = document.getElementById('bgm-audio');
+        const correctAudio = document.getElementById('correct-audio');
+        const wrongAudio = document.getElementById('wrong-audio');
+        const startAudio = document.getElementById('start-audio');
+        const endAudio = document.getElementById('end-audio');
+
+        // --- 状態変数 ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+
+        // --- イベントリスナー ---
+        startBtn.addEventListener('click', startQuiz);
+        retryBtn.addEventListener('click', retryQuiz);
+        nextBtn.addEventListener('click', nextQuestion);
+
+        // --- 関数 ---
+
+        /**
+         * クイズを開始する
+         */
+        function startQuiz() {
+            startAudio.play();
+            bgmAudio.volume = 0.3; // BGMの音量を調整
+            bgmAudio.play();
+
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            
+            showQuestion();
+        }
+
+        /**
+         * 問題と選択肢を表示する
+         */
+        function showQuestion() {
+            // 前回の選択肢をクリア
+            optionsContainer.innerHTML = '';
+
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            questionElement.textContent = currentQuestion.question;
+            questionCounterElement.textContent = `問題 ${currentQuestionIndex + 1} / ${quizData.length}`;
+            progressBar.style.width = `${((currentQuestionIndex + 1) / quizData.length) * 100}%`;
+
+            // 選択肢をシャッフルして表示（任意）
+            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn', 'btn', 'w-full', 'p-4', 'border-2', 'border-gray-300', 'rounded-lg', 'text-left', 'hover:bg-blue-100', 'hover:border-blue-400');
+                button.addEventListener('click', () => selectAnswer(option, button));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        /**
+         * 回答を選択したときの処理
+         * @param {string} selectedOption - ユーザーが選択した選択肢
+         * @param {HTMLElement} selectedButton - ユーザーがクリックしたボタン
+         */
+        function selectAnswer(selectedOption, selectedButton) {
+            // すべてのボタンを無効化
+            Array.from(optionsContainer.children).forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.answer;
+
+            userAnswers.push({
+                question: currentQuestion.question,
+                selected: selectedOption,
+                correctAnswer: currentQuestion.answer,
+                isCorrect: isCorrect,
+                explanation: currentQuestion.explanation
+            });
+
+            if (isCorrect) {
+                score++;
+                correctAudio.play();
+                selectedButton.classList.add('correct');
+                showFeedback(true, currentQuestion.explanation);
+            } else {
+                wrongAudio.play();
+                selectedButton.classList.add('wrong');
+                // 正解の選択肢もハイライト
+                Array.from(optionsContainer.children).forEach(btn => {
+                    if (btn.textContent === currentQuestion.answer) {
+                        btn.classList.add('correct');
+                    }
+                });
+                showFeedback(false, currentQuestion.explanation);
+            }
+        }
+
+        /**
+         * 正解・不正解のフィードバックを表示する
+         * @param {boolean} isCorrect - 正解かどうか
+         * @param {string} explanation - 解説文
+         */
+        function showFeedback(isCorrect, explanation) {
+            if(isCorrect) {
+                feedbackTitle.textContent = "正解！";
+                feedbackTitle.className = "text-3xl font-bold mb-4 text-green-500";
+            } else {
+                feedbackTitle.textContent = "不正解...";
+                feedbackTitle.className = "text-3xl font-bold mb-4 text-red-500";
+            }
+            feedbackExplanation.textContent = explanation;
+            feedbackModal.classList.remove('hidden');
+        }
+
+        /**
+         * 次の問題へ進む
+         */
+        function nextQuestion() {
+            feedbackModal.classList.add('hidden');
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        /**
+         * 結果を表示する
+         */
+        function showResult() {
+            bgmAudio.pause();
+            bgmAudio.currentTime = 0;
+            endAudio.play();
+
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            scoreElement.textContent = `${quizData.length}問中 ${score}問 正解！`;
+
+            // 結果テーブルを生成
+            resultTableBody.innerHTML = '';
+            userAnswers.forEach((answer, index) => {
+                const row = document.createElement('tr');
+                row.classList.add('border-b');
+                
+                const isCorrectClass = answer.isCorrect ? 'bg-green-50' : 'bg-red-50';
+                row.classList.add(isCorrectClass);
+
+                row.innerHTML = `
+                    <td class="p-3 align-top">${index + 1}</td>
+                    <td class="p-3 align-top">${answer.selected} ${answer.isCorrect ? '✔️' : '❌'}</td>
+                    <td class="p-3 align-top">${answer.correctAnswer}</td>
+                    <td class="p-3 align-top text-sm">${answer.explanation}</td>
+                `;
+                resultTableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * クイズをリトライする
+         */
+        function retryQuiz() {
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
