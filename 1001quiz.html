@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全衛生クイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .correct-answer {
+            background-color: #22c55e !important; /* green-500 */
+            color: white !important;
+            transform: scale(1.05);
+            transition: transform 0.2s;
+        }
+        .wrong-answer {
+            background-color: #ef4444 !important; /* red-500 */
+            color: white !important;
+        }
+        .disabled-options button {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Audio Elements -->
+    <audio id="bgm-audio" src="https://hiro01200120.github.io/my-site/bgm.mp3" loop></audio>
+    <audio id="correct-audio" src="https://hiro01200120.github.io/my-site/correct.mp3"></audio>
+    <audio id="wrong-audio" src="https://hiro01200120.github.io/my-site/wrong.mp3"></audio>
+    <audio id="start-audio" src="https://hiro01200120.github.io/my-site/start.mp3"></audio>
+    <audio id="end-audio" src="https://hiro01200120.github.io/my-site/end.mp3"></audio>
+
+    <div id="quiz-container" class="w-full max-w-2xl mx-auto">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center p-8 bg-white rounded-2xl shadow-lg fade-in">
+            <img src="https://hiro01200120.github.io/my-site/rogo.jpg" alt="ロゴ" class="w-full max-w-sm mx-auto mb-6 rounded-lg object-contain">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4 text-slate-700">安全衛生クイズ</h1>
+            <p class="text-slate-500 mb-8">準備ができたら下のボタンを押してクイズを開始してください。</p>
+            <button id="start-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-12 rounded-full hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                スタート
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                <div class="mb-6">
+                    <p id="question-counter" class="text-lg font-bold text-indigo-600"></p>
+                    <h2 id="question-text" class="text-xl md:text-2xl font-bold mt-2"></h2>
+                </div>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Options will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden text-center p-8 bg-white rounded-2xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-4">クイズ終了！</h2>
+            <p class="text-5xl font-bold mb-2 text-indigo-600"><span id="score"></span> / <span id="total-questions"></span></p>
+            <p class="text-lg text-slate-600 mb-8">正解です！</p>
+            <button id="show-answers-btn" class="bg-slate-600 text-white font-bold py-3 px-8 rounded-full hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-md">
+                解答・解説を見る
+            </button>
+        </div>
+        
+        <!-- Answers Review Screen -->
+        <div id="answers-screen" class="hidden bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+             <h2 class="text-2xl font-bold mb-6 text-center">解答・解説一覧</h2>
+             <div id="answers-list" class="space-y-6">
+                <!-- Answers review will be inserted here -->
+             </div>
+             <div class="text-center mt-8">
+                <button id="restart-btn" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-12 rounded-full hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    もう一度挑戦する
+                </button>
+             </div>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "安全衛生月間の方針書が示しているのは？",
+                options: ["組合員サービスの拡充", "どう安全に取り組むかの方針", "設備投資の優先順位", "社員満足度調査の方法"],
+                answer: "どう安全に取り組むかの方針",
+                explanation: "安全衛生月間は「どう取り組むかを示した文書」であり、具体的な安全確保のヒントを職場に応用することを目的としています。"
+            },
+            {
+                question: "会社側の基本的な責任はどれか？",
+                options: ["利益追求", "安全な環境の提供", "社員教育の強化", "福利厚生の充実"],
+                answer: "安全な環境の提供",
+                explanation: "会社には「安全配慮義務」があり、安全な環境を提供する法的責任があります。"
+            },
+            {
+                question: "働く側の義務として強調されているのは？",
+                options: ["コスト削減への協力", "自己保険義務", "出勤率の向上", "技能習得"],
+                answer: "自己保険義務",
+                explanation: "働く側には「自己保険義務」、つまり自分の健康を自分で守る責任があるとされています。"
+            },
+            {
+                question: "10月の安全目標として掲げられているのは？",
+                options: ["労災事故ゼロ", "作業効率10％向上", "コスト削減5％", "ヒヤリ・ハット300件削減"],
+                answer: "労災事故ゼロ",
+                explanation: "10月は労災事故ゼロを目標に掲げています。"
+            },
+            {
+                question: "ヒヤリ・ハット報告の特徴は？",
+                options: ["個人で1件提出すればよい", "事故に至らなかった体験を複数名で1件以上提出", "重大事故のみを報告対象とする", "書面ではなく口頭でのみ共有する"],
+                answer: "事故に至らなかった体験を複数名で1件以上提出",
+                explanation: "「ヒヤリ・ハット報告」は、事故に至らなかった体験を「複数名で1件以上」出すよう求められています。"
+            },
+            {
+                question: "ヒヤリ・ハットをチームで共有する狙いは？",
+                options: ["報告件数を増やすため", "単なる記録の蓄積", "危険の原因を話し合い、改善に繋げるため", "上層部へのアピール"],
+                answer: "危険の原因を話し合い、改善に繋げるため",
+                explanation: "チームで「なぜ危なかったのか」「どうすれば防げるか」を話し合うことで、組織全体の学びに繋げる仕組みです。"
+            },
+            {
+                question: "方針書で区別しているのはどれか？",
+                options: ["安全配慮義務と自己保険義務", "不安全行動とヒューマンエラー", "労災と健康診断", "転倒事故と機械事故"],
+                answer: "不安全行動とヒューマンエラー",
+                explanation: "「これくらい大丈夫」とルールを破る不安全行動と、うっかりミスのヒューマンエラーを区別することの重要性が強調されています。"
+            },
+            {
+                question: "ハインリッヒの法則によると、1件の重大事故の背景には何がある？",
+                options: ["10件の軽傷事故と100件のヒヤリ・ハット", "20件の軽傷事故と200件のヒヤリ・ハット", "29件の軽い事故と300件のヒヤリ・ハット", "50件の軽い事故と500件のヒヤリ・ハット"],
+                answer: "29件の軽い事故と300件のヒヤリ・ハット",
+                explanation: "「1件の重大事故の裏には29件の軽い事故と300件のヒヤリ・ハットがある」とされています。"
+            },
+            {
+                question: "転倒事故の多くの原因として挙げられているのは？",
+                options: ["不十分な教育", "足元の障害物に気づかなかったこと", "設備の老朽化", "作業手順の複雑さ"],
+                answer: "足元の障害物に気づかなかったこと",
+                explanation: "分析によれば、転倒の多くは「足元の障害物に気づかなかったこと」が原因とされています。"
+            },
+            {
+                question: "安全で働きやすい職場が実現するために必要なものは？",
+                options: ["最新設備の導入", "会社の責任と働く人の意識が両輪で機能すること", "外部監査の実施", "報告書の作成徹底"],
+                answer: "会社の責任と働く人の意識が両輪で機能すること",
+                explanation: "会社の環境整備責任と、働く人一人ひとりの安全意識が両立して初めて、安全で働きやすい職場が実現するとされています。"
+            }
+        ];
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const answersScreen = document.getElementById('answers-screen');
+        const startBtn = document.getElementById('start-btn');
+        const showAnswersBtn = document.getElementById('show-answers-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        const questionCounter = document.getElementById('question-counter');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+
+        const scoreEl = document.getElementById('score');
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const answersList = document.getElementById('answers-list');
+
+        // Audio Elements
+        const bgmAudio = document.getElementById('bgm-audio');
+        const correctAudio = document.getElementById('correct-audio');
+        const wrongAudio = document.getElementById('wrong-audio');
+        const startAudio = document.getElementById('start-audio');
+        const endAudio = document.getElementById('end-audio');
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+
+        // Event Listeners
+        startBtn.addEventListener('click', startQuiz);
+        showAnswersBtn.addEventListener('click', showAnswers);
+        restartBtn.addEventListener('click', () => location.reload());
+
+        function startQuiz() {
+            startAudio.play();
+            bgmAudio.volume = 0.3;
+            bgmAudio.play();
+            
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            quizScreen.classList.add('fade-in');
+
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            showQuestion();
+        }
+
+        function showQuestion() {
+            optionsContainer.classList.remove('disabled-options');
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            questionCounter.textContent = `第 ${currentQuestionIndex + 1} 問`;
+            questionText.textContent = currentQuestion.question;
+            
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = "w-full text-left p-4 bg-slate-200 rounded-lg hover:bg-indigo-200 transition-colors duration-200";
+                button.addEventListener('click', () => selectAnswer(option, button));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function selectAnswer(selectedOption, button) {
+            optionsContainer.classList.add('disabled-options');
+            const currentQuestion = quizData[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.answer;
+            
+            userAnswers.push({
+                question: currentQuestion.question,
+                selected: selectedOption,
+                correct: currentQuestion.answer,
+                explanation: currentQuestion.explanation,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) {
+                score++;
+                correctAudio.play();
+                button.classList.add('correct-answer');
+            } else {
+                wrongAudio.play();
+                button.classList.add('wrong-answer');
+                // Highlight the correct answer
+                Array.from(optionsContainer.children).forEach(child => {
+                    if (child.textContent === currentQuestion.answer) {
+                        child.classList.add('correct-answer');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            }, 1500);
+        }
+
+        function showResult() {
+            bgmAudio.pause();
+            endAudio.play();
+
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            resultScreen.classList.add('fade-in');
+            
+            scoreEl.textContent = score;
+            totalQuestionsEl.textContent = quizData.length;
+        }
+
+        function showAnswers() {
+            resultScreen.classList.add('hidden');
+            answersScreen.classList.remove('hidden');
+            answersScreen.classList.add('fade-in');
+
+            answersList.innerHTML = '';
+
+            userAnswers.forEach((answer, index) => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'border-b pb-4';
+                
+                let resultIcon = answer.isCorrect 
+                    ? '<span class="text-green-500 font-bold text-2xl">○</span>' 
+                    : '<span class="text-red-500 font-bold text-2xl">×</span>';
+
+                answerDiv.innerHTML = `
+                    <div class="font-bold text-lg flex items-start">
+                        ${resultIcon}
+                        <p class="ml-2">Q${index + 1}: ${answer.question}</p>
+                    </div>
+                    <div class="pl-8 mt-2">
+                        <p class="text-slate-500">あなたの回答: ${answer.selected}</p>
+                        <p class="text-slate-700 font-bold">正解: ${answer.correct}</p>
+                        <div class="mt-2 p-3 bg-slate-100 rounded-lg">
+                           <p class="font-bold text-slate-600">解説</p>
+                           <p class="text-slate-600">${answer.explanation}</p>
+                        </div>
+                    </div>
+                `;
+                answersList.appendChild(answerDiv);
+            });
+        }
+    </script>
+</body>
+</html>
