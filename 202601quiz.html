@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エフコープ 2030年ビジョンクイズ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-option:active {
+            transform: scale(0.98);
+        }
+        #progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <!-- Audio Elements -->
+    <audio id="bgm" src="https://hiro01200120.github.io/my-site/bgm.mp3" loop></audio>
+    <audio id="sndStart" src="https://hiro01200120.github.io/my-site/start.mp3"></audio>
+    <audio id="sndCorrect" src="https://hiro01200120.github.io/my-site/correct.mp3"></audio>
+    <audio id="sndWrong" src="https://hiro01200120.github.io/my-site/wrong.mp3"></audio>
+    <audio id="sndEnd" src="https://hiro01200120.github.io/my-site/end.mp3"></audio>
+
+    <div id="app" class="w-full max-w-2xl">
+        <!-- Start Screen -->
+        <div id="start-screen" class="glass-card rounded-3xl p-8 text-center animate__animated animate__fadeIn">
+            <div class="mb-6 flex justify-center">
+                <img src="https://hiro01200120.github.io/my-site/rogo.jpg" alt="Logo" class="max-w-[280px] h-auto rounded-lg shadow-sm border">
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-green-800 mb-4">2030年ビジョン<br>& 第12次中期計画クイズ</h1>
+            <p class="text-gray-600 mb-8 leading-relaxed">
+                エフコープが目指す未来「冒険の地図」について、<br>全10問のクイズに挑戦しましょう！
+            </p>
+            <button onclick="startQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-12 rounded-full text-xl btn-hover shadow-lg">
+                クイズを始める！
+            </button>
+        </div>
+
+        <!-- Quiz Screen (Hidden) -->
+        <div id="quiz-screen" class="hidden glass-card rounded-3xl p-6 md:p-8 animate__animated animate__fadeIn">
+            <div class="flex justify-between items-center mb-4">
+                <span id="question-number" class="text-green-700 font-bold">第 1 問</span>
+                <span id="score-display" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">正解数: 0</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                <div id="progress-bar" class="bg-green-500 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+            
+            <h2 id="question-text" class="text-xl font-bold text-gray-800 mb-8 min-h-[3rem]">質問文がここに入ります</h2>
+            
+            <div id="options-container" class="space-y-4 mb-6">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div id="feedback" class="hidden text-center p-4 rounded-xl mb-4 font-bold animate__animated">
+                <!-- Correct/Wrong feedback -->
+            </div>
+        </div>
+
+        <!-- Result Screen (Hidden) -->
+        <div id="result-screen" class="hidden glass-card rounded-3xl p-6 md:p-8 animate__animated animate__fadeIn">
+            <h2 class="text-3xl font-bold text-green-800 text-center mb-6">クイズ終了！</h2>
+            <div class="text-center mb-8">
+                <p class="text-lg text-gray-600 mb-2">あなたの正解数は...</p>
+                <div class="text-6xl font-black text-green-600"><span id="final-score">0</span> / <span id="total-questions">0</span></div>
+            </div>
+
+            <h3 class="font-bold text-gray-800 mb-4 border-l-4 border-green-500 pl-2">回答と解説の一覧</h3>
+            <div class="max-h-[400px] overflow-y-auto border rounded-xl mb-6">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="sticky top-0 bg-green-50">
+                        <tr>
+                            <th class="p-2 border border-green-100">問</th>
+                            <th class="p-2 border border-green-100">あなたの回答</th>
+                            <th class="p-2 border border-green-100">正解</th>
+                            <th class="p-2 border border-green-100">解説</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summary-body">
+                        <!-- Summary rows will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="location.reload()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full btn-hover">
+                    もう一度挑戦する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "エフコープが掲げる、2030年までに本気で実現しようとしている長期ビジョンの名前は何？",
+                options: ["2030年冒険記", "2030年ビジョン", "第12次未来計画", "エフコープ・ドリーム2030"],
+                correct: 1,
+                explanation: "「2030年ビジョン」は、エフコープの基本理念をどう形にするかを示した「冒険の地図」のような長期計画です。"
+            },
+            {
+                question: "エフコープの基本理念である「〇〇に生き、〇〇につくる、くらしと地域」。〇〇に入る言葉は？",
+                options: ["自分らしく", "ともに", "豊かに", "未来のために"],
+                correct: 1,
+                explanation: "「ともに生き、ともにつくる、くらしと地域」がエフコープの揺るぎない基本理念です。"
+            },
+            {
+                question: "2030年ビジョンの達成に向け、現在策定されている2025年度からの3カ年計画は何？",
+                options: ["第10次中期計画", "第11次中期計画", "第12次中期計画", "第13次中期計画"],
+                correct: 2,
+                explanation: "「第12次中期計画」は、2030年ビジョンという目的地へ進むための具体的な「ロードマップ」です。"
+            },
+            {
+                question: "2030年までに達成を目指している「産直率」の目標は何％？",
+                options: ["30%", "40%", "50%", "60%"],
+                correct: 2,
+                explanation: "現在は約40%ですが、2030年までに「産直率50%」を目指しています。届く商品の半分が産直品になる計算です。"
+            },
+            {
+                question: "「選ぶ力を育てる」ために、産地交流の参加者を年間何人まで増やす計画？",
+                options: ["5,000人", "1万人", "2万人", "3万人"],
+                correct: 3,
+                explanation: "現在の約3,000人から、10倍近い「3万人」を目指しています。顔が見える繋がりを大切にしています。"
+            },
+            {
+                question: "2023年に設立された財団による奨学金制度は、どのようなタイプ？",
+                options: ["貸与型（返済が必要）", "給付型（返済が不要）", "利息付き貸与型", "入学金のみ支給型"],
+                correct: 1,
+                explanation: "エフコープの奨学金は「給付型」です。2030年には300人への給付を目指しています。"
+            },
+            {
+                question: "エフコープが支援・活動を行う分野として、間違っているものはどれ？",
+                options: ["福祉・子育て", "環境・防災", "平和活動", "高級リゾート開発"],
+                correct: 3,
+                explanation: "エフコープは食だけでなく、福祉、子育て、環境、防災、地域づくり、平和活動など、くらし全体を支える活動を行っています。"
+            },
+            {
+                question: "DX推進の一環として、組合員との接点を集中させようとしているツールは何？",
+                options: ["公式ホームページ", "エフコープ新聞", "コーププラス（アプリ）", "電話注文センター"],
+                correct: 2,
+                explanation: "アプリ「コーププラス」に施策を集中させ、デジタルを通じた組合員との繋がり（エンゲージメント）を高めることに挑戦します。"
+            },
+            {
+                question: "「未来への思い」として取り組んでいる、環境や次世代に関わる活動は？",
+                options: ["再生可能エネルギーの活用", "食品ロスの削減", "被爆体験を伝える平和活動", "上記すべて"],
+                correct: 3,
+                explanation: "再エネ活用、食品ロス削減、平和活動など、今の行動の積み重ねが未来をつくると考えています。"
+            },
+            {
+                question: "「2030年ビジョン」や「中期計画」の源（みなもと）となっているものは？",
+                options: ["組合員一人ひとりの声", "AIが作成した予測", "ニュース番組の意見", "他社のビジネスモデル"],
+                correct: 0,
+                explanation: "組合員一人ひとりの「もっとこうしたい！」という声が、エフコープのすべての計画の源となっています。"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+        let canAnswer = true;
+
+        const bgm = document.getElementById('bgm');
+        const sndStart = document.getElementById('sndStart');
+        const sndCorrect = document.getElementById('sndCorrect');
+        const sndWrong = document.getElementById('sndWrong');
+        const sndEnd = document.getElementById('sndEnd');
+
+        function startQuiz() {
+            bgm.volume = 0.3;
+            bgm.play().catch(e => console.log("BGM playback deferred"));
+            sndStart.play();
+            
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            canAnswer = true;
+            const q = quizData[currentQuestion];
+            document.getElementById('question-number').innerText = `第 ${currentQuestion + 1} 問`;
+            document.getElementById('question-text').innerText = q.question;
+            document.getElementById('score-display').innerText = `正解数: ${score}`;
+            
+            const progress = ((currentQuestion) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const button = document.createElement('button');
+                button.className = 'quiz-option w-full text-left p-4 rounded-xl border-2 border-green-100 bg-white hover:bg-green-50 hover:border-green-300 font-medium text-gray-700 btn-hover flex items-center';
+                button.innerHTML = `
+                    <span class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-3 font-bold text-sm">${index + 1}</span>
+                    <span>${opt}</span>
+                `;
+                button.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+
+            document.getElementById('feedback').classList.add('hidden');
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const q = quizData[currentQuestion];
+            const isCorrect = selectedIndex === q.correct;
+            userAnswers.push({
+                selected: q.options[selectedIndex],
+                correct: q.options[q.correct],
+                isCorrect: isCorrect,
+                explanation: q.explanation
+            });
+
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('hidden', 'animate__bounceIn', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+
+            if (isCorrect) {
+                score++;
+                sndCorrect.currentTime = 0;
+                sndCorrect.play();
+                feedback.innerText = "正解！ ✨";
+                feedback.classList.add('bg-green-100', 'text-green-700', 'animate__bounceIn');
+            } else {
+                sndWrong.currentTime = 0;
+                sndWrong.play();
+                feedback.innerText = `不正解... (正解: ${q.options[q.correct]})`;
+                feedback.classList.add('bg-red-100', 'text-red-700', 'animate__shakeX');
+            }
+
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < quizData.length) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            }, 2000);
+        }
+
+        function showResult() {
+            bgm.pause();
+            sndEnd.play();
+            
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('total-questions').innerText = quizData.length;
+
+            const summaryBody = document.getElementById('summary-body');
+            summaryBody.innerHTML = '';
+
+            userAnswers.forEach((answer, index) => {
+                const row = document.createElement('tr');
+                const rowClass = answer.isCorrect ? '' : 'bg-red-50';
+                row.className = rowClass;
+                row.innerHTML = `
+                    <td class="p-2 border border-green-100 font-bold text-center">${index + 1}</td>
+                    <td class="p-2 border border-green-100 ${answer.isCorrect ? 'text-green-600' : 'text-red-600 font-bold'}">${answer.selected}</td>
+                    <td class="p-2 border border-green-100 text-green-600 font-bold">${answer.correct}</td>
+                    <td class="p-2 border border-green-100 text-xs text-gray-600">${answer.explanation}</td>
+                `;
+                summaryBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
